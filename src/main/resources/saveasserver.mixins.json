@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.github.telvarost.saveasserver.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MinecartMixin"
+  ],
+  "server": [
+    "server.ServerPlayerInteractionManagerMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

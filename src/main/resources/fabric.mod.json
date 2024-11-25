@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "saveasserver",
+  "version": "${version}",
+
+  "name": "SaveAsServer",
+  "description": "Allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.",
+  "authors": [
+    "Telvarost"
+  ],
+  "contact": {
+    "issues": "https://github.com/telvarost/SaveAsServer-StationAPI/issues",
+    "homepage": "https://github.com/telvarost/SaveAsServer-StationAPI/",
+    "sources": "https://github.com/telvarost/SaveAsServer-StationAPI/"
+  },
+
+  "license": "MIT",
+  "icon": "assets/saveasserver/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "stationapi:event_bus": [
+    ],
+    "stationapi:event_bus_client": [
+    ],
+    "stationapi:event_bus_server": [
+    ],
+    "gcapi3": [
+      "com.github.telvarost.saveasserver.Config"
+    ]
+  },
+  "mixins": [
+    "saveasserver.mixins.json"
+  ],
+
+  "depends": {
+    "minecraft": "1.0.0-beta.7.3"
+  },
+
+  "recommends": {
+    "stationapi": "*",
+    "gcapi3": ">=3.0.2",
+    "modmenu": "*"
+  },
+
+  "breaks": {
+    "finalbeta": "*",
+    "unitweaks": "*"
+  }
+}
