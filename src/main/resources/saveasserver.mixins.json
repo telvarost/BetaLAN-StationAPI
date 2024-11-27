@@ -8,8 +8,7 @@
     "WorldPropertiesMixin"
   ],
   "server": [
-    "server.AlphaWorldStorageMixin",
-    "server.ServerPlayerInteractionManagerMixin"
+    "server.AlphaWorldStorageMixin"
   ],
   "client": [
     "client.PauseMixin"

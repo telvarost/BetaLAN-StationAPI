@@ -24,6 +24,6 @@ public class AlphaWorldStorageMixin {
             cancellable = true
     )
     public void save(WorldProperties properties, List players, CallbackInfo ci) {
-        System.out.println(players);
+        //System.out.println(players);
     }
 }

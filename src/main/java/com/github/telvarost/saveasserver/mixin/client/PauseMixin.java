@@ -5,19 +5,17 @@ import io.github.prospector.modmenu.gui.ModMenuButtonWidget;
 import io.github.prospector.modmenu.mixin.MixinGuiButton;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.pack.PackScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.modificationstation.stationapi.api.entity.player.PlayerHelper;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -47,18 +45,24 @@ public class PauseMixin extends Screen {
             PlayerEntity player = PlayerHelper.getPlayerFromGame();
             if (null != player)
             {
-                savePlayerData(player);
+                saveClientPlayerData(player);
             }
+
+            // Prepare Server Screen
             //this.minecraft.setScreen(new PackScreen(this));
+            // Launch and Join
         }
     }
 
-
-    public void savePlayerData(PlayerEntity player) {
+    @Unique
+    private void saveClientPlayerData(PlayerEntity player) {
         try {
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
             File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
-
+            File serverLock = new File(worldDir, "server.lock");
+            if (!serverLock.exists()) {
+                serverLock.createNewFile();
+            }
             File playerDataDir = new File(worldDir, "players");
             if (!playerDataDir.exists()) {
                 playerDataDir.mkdirs();
@@ -77,6 +81,5 @@ public class PauseMixin extends Screen {
         } catch (Exception var5) {
             System.out.println("Failed to save player data for " + this.minecraft.session.username);
         }
-
     }
 }
