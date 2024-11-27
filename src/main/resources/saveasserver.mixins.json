@@ -4,7 +4,6 @@
   "package": "com.github.telvarost.saveasserver.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MinecartMixin"
   ],
   "server": [
     "server.AlphaWorldStorageMixin",
