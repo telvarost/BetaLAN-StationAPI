@@ -4,12 +4,15 @@
   "package": "com.github.telvarost.saveasserver.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "FlattenedWorldStorageMixin",
+    "WorldPropertiesMixin"
   ],
   "server": [
     "server.AlphaWorldStorageMixin",
     "server.ServerPlayerInteractionManagerMixin"
   ],
   "client": [
+    "client.PauseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
