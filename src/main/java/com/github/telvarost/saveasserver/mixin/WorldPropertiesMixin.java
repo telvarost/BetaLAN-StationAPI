@@ -32,6 +32,7 @@ public class WorldPropertiesMixin {
     )
     public void getPlayerNbt(CallbackInfoReturnable<NbtCompound> cir) {
         try {
+            /** - Get server files and check for server lock */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
             File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
             File serverLock = new File(worldDir, "server.lock");
@@ -43,28 +44,31 @@ public class WorldPropertiesMixin {
                 playerDataDir.mkdirs();
             }
 
+            /** - Check if joining a client or server world */
             Minecraft minecraft = (Minecraft)FabricLoader.getInstance().getGameInstance();
             if (  (null  != minecraft.world)
                && (false == minecraft.world.isRemote)
                )
             {
-                NbtCompound readPlayerNbt = new NbtCompound();
+                /** - If world is client, retrieve client player from server player data */
                 File var4 = new File(playerDataDir, minecraft.session.username + ".dat");
                 if (var4.exists()) {
+                    NbtCompound readPlayerNbt = new NbtCompound();
                     readPlayerNbt = NbtIo.readCompressed(new FileInputStream(var4));
+
+                    /** - Fix player position */
                     NbtList posNbt = readPlayerNbt.getList("Pos");
                     double playerYLevel = ((NbtDouble)posNbt.get(1)).value + 2.0;
                     ((NbtDouble)posNbt.get(1)).value = playerYLevel;
+
+                    this.playerNbt = readPlayerNbt;
                 }
-                this.playerNbt = readPlayerNbt;
+
+                /** - Free server lock */
                 serverLock.delete();
             }
-
-        } catch (Exception var5) {
-            Minecraft minecraft = (Minecraft)FabricLoader.getInstance().getGameInstance();
-            System.out.println("Failed to save player data for " + minecraft.session.username);
+        } catch (Exception ex) {
+            System.out.println("Failed to retrieve player data: " + ex.toString());
         }
-
-        System.out.println(this.playerNbt);
     }
 }
