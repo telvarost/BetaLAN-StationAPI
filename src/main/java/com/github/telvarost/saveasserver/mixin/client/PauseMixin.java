@@ -129,6 +129,9 @@ public class PauseMixin extends Screen {
                 editLocalServerPropertiesFile(serverPropertiesFile);
             }
 
+            /** - Extract server jar file */
+            // TODO
+
             /** - Launch server */
             String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
