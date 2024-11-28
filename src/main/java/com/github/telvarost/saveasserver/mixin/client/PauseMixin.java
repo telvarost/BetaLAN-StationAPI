@@ -1,5 +1,6 @@
 package com.github.telvarost.saveasserver.mixin.client;
 
+import com.github.telvarost.saveasserver.Config;
 import com.github.telvarost.saveasserver.ModHelper;
 import io.github.prospector.modmenu.gui.ModMenuButtonWidget;
 import io.github.prospector.modmenu.mixin.MixinGuiButton;
@@ -103,7 +104,8 @@ public class PauseMixin extends Screen {
             this.minecraft.setScreen(new TitleScreen());
 
             /** - Launch server */
-            ProcessBuilder pb = new ProcessBuilder("java", "-jar", "local-babric-server.0.16.9.jar");
+            String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
+            ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {

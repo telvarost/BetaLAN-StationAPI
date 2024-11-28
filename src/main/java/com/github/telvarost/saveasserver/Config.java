@@ -10,9 +10,15 @@ public class Config {
     public static class ConfigFields {
 
         @ConfigEntry(
-                name = "Test Config",
-                multiplayerSynced = true
+                name = "Server GUI Enabled"
         )
-        public Boolean CONFIG_TEST = true;
+        public Boolean SERVER_GUI_ENABLED = true;
+
+        @ConfigEntry(
+                name = "Java Path",
+                description = "Path to Java 17 runtime",
+                maxLength = 32767
+        )
+        public String JAVA_PATH = "java";
     }
 }

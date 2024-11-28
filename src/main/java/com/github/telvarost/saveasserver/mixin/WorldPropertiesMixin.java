@@ -58,7 +58,7 @@ public class WorldPropertiesMixin {
 
                     /** - Fix player position */
                     NbtList posNbt = readPlayerNbt.getList("Pos");
-                    double playerYLevel = ((NbtDouble)posNbt.get(1)).value + 2.0;
+                    double playerYLevel = ((NbtDouble)posNbt.get(1)).value + 1.0;
                     ((NbtDouble)posNbt.get(1)).value = playerYLevel;
 
                     this.playerNbt = readPlayerNbt;
