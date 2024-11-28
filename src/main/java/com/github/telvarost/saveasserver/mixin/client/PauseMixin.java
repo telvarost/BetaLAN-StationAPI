@@ -103,30 +103,6 @@ public class PauseMixin extends Screen {
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
 
-//            new Thread(new Runnable() {
-//                public void run() {
-//                    try {
-//                        File serverFile = new File(Minecraft.getRunDirectory(), "local-babric-server.0.16.9.jar");
-//                        URL serverUrl = serverFile.toURI().toURL();
-//                        JarClassLoader loader = new JarClassLoader(serverUrl);
-//                        String main = null;
-//                        main = loader.getMainClassName();
-//                        String[] args = {""};
-//                        loader.invokeClass(main, args);
-//                    } catch (IOException e) {
-//                        System.out.println("IOException: Failed to start LAN server\n" + e.toString());
-//                    } catch (ClassNotFoundException e) {
-//                        System.out.println("ClassNotFoundException: Failed to start LAN server\n" + e.toString());
-//                    } catch (NoSuchMethodException e) {
-//                        System.out.println("NoSuchMethodException: Failed to start LAN server\n" + e.toString());
-//                    } catch (InvocationTargetException e) {
-//                        System.out.println("InvocationTargetException: Failed to start LAN server\n");
-//                        e.printStackTrace();
-//                    } catch (Exception ex) {
-//                        System.out.println("Exception: Failed to start LAN server\n" + ex.toString());
-//                    }
-//                }
-//            }).start();
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
