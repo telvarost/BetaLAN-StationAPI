@@ -31,13 +31,17 @@ public class PauseMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"), cancellable = true)
     public void init_return(CallbackInfo ci) {
-        ButtonWidget optionsButton = minecraft.isApplet ? (ButtonWidget) this.buttons.get(this.buttons.size() - 2) : (ButtonWidget) this.buttons.get(2);
+        if (  (null  != this.minecraft.world)
+           && (false == this.minecraft.world.isRemote)
+        ) {
+            ButtonWidget optionsButton = minecraft.isApplet ? (ButtonWidget) this.buttons.get(this.buttons.size() - 2) : (ButtonWidget) this.buttons.get(2);
 
-        int newWidth = ((MixinGuiButton) optionsButton).getWidth() / 2 - 1;
-        ((MixinGuiButton) optionsButton).setWidth(newWidth);
+            int newWidth = ((MixinGuiButton) optionsButton).getWidth() / 2 - 1;
+            ((MixinGuiButton) optionsButton).setWidth(newWidth);
 
-        TranslationStorage translationStorage = TranslationStorage.getInstance();
-        this.buttons.add(new ModMenuButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20,  translationStorage.get("menu.saveasserver.opentolan")));
+            TranslationStorage translationStorage = TranslationStorage.getInstance();
+            this.buttons.add(new ModMenuButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20,  translationStorage.get("menu.saveasserver.opentolan")));
+        }
     }
 
     @Inject(
@@ -102,7 +106,13 @@ public class PauseMixin extends Screen {
             ProcessBuilder pb = new ProcessBuilder("java", "-jar", "local-babric-server.0.16.9.jar");
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
-
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                public void run() {
+                    if (null != ModHelper.ModHelperFields.CurrentServer) {
+                        ModHelper.ModHelperFields.CurrentServer.destroy();
+                    }
+                }
+            }, "ShutdownServer-thread"));
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
