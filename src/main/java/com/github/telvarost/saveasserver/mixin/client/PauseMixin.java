@@ -103,6 +103,10 @@ public class PauseMixin extends Screen {
             this.minecraft.setWorld((World)null);
             this.minecraft.setScreen(new TitleScreen());
 
+            /** - Edit server properties */
+            // Change level to client world
+            // Change port to configured port
+
             /** - Launch server */
             String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
