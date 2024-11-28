@@ -51,10 +51,10 @@ public class WorldPropertiesMixin {
                )
             {
                 /** - If world is client, retrieve client player from server player data */
-                File var4 = new File(playerDataDir, minecraft.session.username + ".dat");
-                if (var4.exists()) {
+                File playerFile = new File(playerDataDir, minecraft.session.username + ".dat");
+                if (playerFile.exists()) {
                     NbtCompound readPlayerNbt = new NbtCompound();
-                    readPlayerNbt = NbtIo.readCompressed(new FileInputStream(var4));
+                    readPlayerNbt = NbtIo.readCompressed(new FileInputStream(playerFile));
 
                     /** - Fix player position */
                     NbtList posNbt = readPlayerNbt.getList("Pos");

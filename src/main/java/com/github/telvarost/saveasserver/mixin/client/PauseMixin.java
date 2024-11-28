@@ -91,13 +91,13 @@ public class PauseMixin extends Screen {
             /** - Save client player data to server player file */
             NbtCompound var2 = new NbtCompound();
             player.write(var2);
-            File var3 = new File(playerDataDir, "_tmp_.dat");
-            File var4 = new File(playerDataDir, this.minecraft.session.username + ".dat");
-            NbtIo.writeCompressed(var2, new FileOutputStream(var3));
-            if (var4.exists()) {
-                var4.delete();
+            File tempPlayerFile = new File(playerDataDir, "_tmp_.dat");
+            File playerFile = new File(playerDataDir, this.minecraft.session.username + ".dat");
+            NbtIo.writeCompressed(var2, new FileOutputStream(tempPlayerFile));
+            if (playerFile.exists()) {
+                playerFile.delete();
             }
-            var3.renameTo(var4);
+            tempPlayerFile.renameTo(playerFile);
 
             /** - Close client world */
             this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
@@ -112,28 +112,28 @@ public class PauseMixin extends Screen {
             if (!serverPropertiesFile.exists())
             {
                 try {
-                    serverPropertiesFile.createNewFile();
-                    FileWriter writer = new FileWriter(serverPropertiesFile);
-                    writer.write("#Minecraft server properties\n");
-                    writer.write("#" + new Date() + "\n");
+                    PrintWriter writer = new PrintWriter(serverPropertiesFile, "UTF-8");
+                    writer.println("#Minecraft server properties");
+                    writer.println("#" + new Date());
                     if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                        writer.write("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder + "\n");
+                        writer.println("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder);
                     } else {
-                        writer.write("#level-name=world\n");
+                        writer.println("#level-name=world");
                     }
-                    writer.write("default-gamemode=0\n");
-                    writer.write("view-distance=10\n");
-                    writer.write("white-list=false\n");
-                    writer.write("server-ip=\n");
-                    writer.write("pvp=true\n");
-                    writer.write("level-seed=\n");
-                    writer.write("spawn-animals=true\n");
-                    writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
-                    writer.write("allow-nether=true\n");
-                    writer.write("spawn-monsters=tru\n");
-                    writer.write("max-players=20\n");
-                    writer.write("online-mode=false\n");
-                    writer.write("allow-flight=false\n");
+                    writer.println("default-gamemode=0");
+                    writer.println("view-distance=10");
+                    writer.println("white-list=false");
+                    writer.println("server-ip=");
+                    writer.println("pvp=true");
+                    writer.println("level-seed=");
+                    writer.println("spawn-animals=true");
+                    writer.println("server-port=" + Config.config.SERVER_PORT);
+                    writer.println("allow-nether=true");
+                    writer.println("spawn-monsters=true");
+                    writer.println("max-players=20");
+                    writer.println("online-mode=false");
+                    writer.println("allow-flight=false");
+                    writer.close();
                 } catch (FileNotFoundException e) {
                     System.out.println("Failed to create LAN server properties: ");
                     e.printStackTrace();
@@ -189,6 +189,13 @@ public class PauseMixin extends Screen {
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                public void run() {
+                    if (null != ModHelper.ModHelperFields.CurrentServer) {
+                        ModHelper.ModHelperFields.CurrentServer.destroy();
+                    }
+                }
+            }, "ShutdownServer-thread"));
 
             /** - Monitor server to see when world is ready */
             // Also need to create a loading screen to display monitored data
@@ -213,14 +220,6 @@ public class PauseMixin extends Screen {
 //                    }
 //                }
 //            }).start();
-
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                public void run() {
-                    if (null != ModHelper.ModHelperFields.CurrentServer) {
-                        ModHelper.ModHelperFields.CurrentServer.destroy();
-                    }
-                }
-            }, "ShutdownServer-thread"));
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
