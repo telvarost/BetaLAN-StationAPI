@@ -105,81 +105,28 @@ public class PauseMixin extends Screen {
             this.minecraft.setWorld((World)null);
             this.minecraft.setScreen(new TitleScreen());
 
-            /** - Edit server properties */
+            /** - Create/edit LAN server OP list */
+            if (Config.config.AUTO_OP_LAN_SERVER_HOST) {
+                File serverOpListFile = new File(Minecraft.getRunDirectory(), "ops.txt");
+                if (!serverOpListFile.exists())
+                {
+                    /** - LAN server OP list file does not exist, create new LAN server OP list file */
+                    createLocalServerOpListFile(serverOpListFile);
+                } else {
+                    /** - LAN server OP list exists, edit LAN server OP list file */
+                    editLocalServerOpListFile(serverOpListFile);
+                }
+            }
+
+            /** - Create/edit LAN server properties */
             File serverPropertiesFile = new File(Minecraft.getRunDirectory(), "server.properties");
             if (!serverPropertiesFile.exists())
             {
-                try {
-                    PrintWriter writer = new PrintWriter(serverPropertiesFile, "UTF-8");
-                    writer.println("#Minecraft server properties");
-                    writer.println("#" + new Date());
-                    if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                        writer.println("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder);
-                    } else {
-                        writer.println("#level-name=world");
-                    }
-                    writer.println("default-gamemode=0");
-                    writer.println("view-distance=10");
-                    writer.println("white-list=false");
-                    writer.println("server-ip=");
-                    writer.println("pvp=true");
-                    writer.println("level-seed=");
-                    writer.println("spawn-animals=true");
-                    writer.println("server-port=" + Config.config.SERVER_PORT);
-                    writer.println("allow-nether=true");
-                    writer.println("spawn-monsters=true");
-                    writer.println("max-players=20");
-                    writer.println("online-mode=false");
-                    writer.println("allow-flight=false");
-                    writer.close();
-                } catch (FileNotFoundException e) {
-                    System.out.println("Failed to create LAN server properties: ");
-                    e.printStackTrace();
-                }
+                /** - LAN server properties file does not exist, create new LAN server properties file */
+                createLocalServerPropertiesFile(serverPropertiesFile);
             } else {
-                File tempServerPropertiesFile = new File(Minecraft.getRunDirectory(), "_server.properties");
-                Files.copy(serverPropertiesFile.toPath(), tempServerPropertiesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                try {
-                    FileWriter writer = new FileWriter(tempServerPropertiesFile);
-                    Reader reader = new FileReader(serverPropertiesFile);
-                    BufferedReader br = new BufferedReader(reader);
-
-                    while(br.ready()) {
-                        String currentLine = br.readLine();
-
-                        // Change level to client world
-                        if (currentLine.contains("level-name")) {
-                            if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                                writer.write("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder + "\n");
-                            }
-                        }
-
-                        // Change port to configured port
-                        if (currentLine.contains("server-port")) {
-                            if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                                writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
-                            }
-                        }
-
-                        // Change to offline mode
-                        if (currentLine.contains("online-mode")) {
-                            if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                                writer.write("online-mode=false\n");
-                            }
-                        }
-                    }
-
-                    writer.close();
-                    br.close();
-                    reader.close();
-                    tempServerPropertiesFile.renameTo(serverPropertiesFile);
-                } catch (FileNotFoundException e) {
-                    System.out.println("Failed to update LAN server properties: ");
-                    e.printStackTrace();
-                }
-                if (serverPropertiesFile.exists() && tempServerPropertiesFile.exists()) {
-                    tempServerPropertiesFile.delete();
-                }
+                /** - LAN server properties exists, edit LAN server properties file */
+                editLocalServerPropertiesFile(serverPropertiesFile);
             }
 
             /** - Launch server */
@@ -220,6 +167,151 @@ public class PauseMixin extends Screen {
 //            }).start();
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
+        }
+    }
+
+    @Unique
+    private void createLocalServerOpListFile(File serverOpListFile) {
+        try {
+            PrintWriter writer = new PrintWriter(serverOpListFile, "UTF-8");
+            writer.println(this.minecraft.session.username);
+
+            /** - Release file resources */
+            writer.close();
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+            System.out.println("Failed to create LAN server OP list: ");
+            e.printStackTrace();
+        }
+    }
+
+    @Unique
+    private void editLocalServerOpListFile(File serverOpListFile) {
+        File tempServerOpListFile = new File(Minecraft.getRunDirectory(), "_ops.txt");
+        try {
+            Files.copy(serverOpListFile.toPath(), tempServerOpListFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            FileWriter writer = new FileWriter(tempServerOpListFile);
+            Reader reader = new FileReader(tempServerOpListFile);
+            BufferedReader br = new BufferedReader(reader);
+            boolean isClientPlayerOp = false;
+
+            /** - Scan file for values to change */
+            while(br.ready()) {
+                String currentLine = br.readLine();
+
+                /** - Check if client player is OP */
+                if (currentLine.contains(this.minecraft.session.username)) {
+                    isClientPlayerOp = true;
+                }
+            }
+
+            /** - Client player is not OP, OP client player */
+            if (false == isClientPlayerOp) {
+                writer.write(this.minecraft.session.username + "\n");
+            }
+
+            /** - Release file resources */
+            writer.close();
+            br.close();
+            reader.close();
+
+            /** - Replace current OP list file with newly created OP list file */
+            tempServerOpListFile.renameTo(serverOpListFile);
+        } catch (IOException e) {
+            System.out.println("Failed to update LAN server properties: ");
+            e.printStackTrace();
+        }
+
+        /** - Ensure temporary OP list file is deleted if it is no longer needed */
+        if (serverOpListFile.exists() && tempServerOpListFile.exists()) {
+            tempServerOpListFile.delete();
+        }
+    }
+
+    @Unique
+    private void createLocalServerPropertiesFile(File serverPropertiesFile) {
+        try {
+            PrintWriter writer = new PrintWriter(serverPropertiesFile, "UTF-8");
+            writer.println("#Minecraft server properties");
+            writer.println("#" + new Date());
+            if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                writer.println("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder);
+            } else {
+                writer.println("#level-name=world");
+            }
+            writer.println("default-gamemode=0");
+            writer.println("view-distance=10");
+            writer.println("white-list=false");
+            writer.println("server-ip=");
+            writer.println("pvp=true");
+            writer.println("level-seed=");
+            writer.println("spawn-animals=true");
+            writer.println("server-port=" + Config.config.SERVER_PORT);
+            writer.println("allow-nether=true");
+            writer.println("spawn-monsters=true");
+            writer.println("max-players=20");
+            writer.println("online-mode=false");
+            writer.println("allow-flight=false");
+
+            /** - Release file resources */
+            writer.close();
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+            System.out.println("Failed to create LAN server properties: ");
+            e.printStackTrace();
+        }
+    }
+
+    @Unique
+    private void editLocalServerPropertiesFile(File serverPropertiesFile) {
+        File tempServerPropertiesFile = new File(Minecraft.getRunDirectory(), "_server.properties");
+        try {
+            Files.copy(serverPropertiesFile.toPath(), tempServerPropertiesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            FileWriter writer = new FileWriter(tempServerPropertiesFile);
+            Reader reader = new FileReader(serverPropertiesFile);
+            BufferedReader br = new BufferedReader(reader);
+
+            /** - Scan file for values to change */
+            while(br.ready()) {
+                String currentLine = br.readLine();
+
+                /** - Change level to currently selected client world */
+                if (currentLine.contains("level-name")) {
+                    if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                        writer.write("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder + "\n");
+                    }
+                }
+
+                /** - Change port to port from GCAPI3 config */
+                if (currentLine.contains("server-port")) {
+                    if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                        writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
+                    }
+                }
+
+                /** - Change to offline mode if online-mode is forced false */
+                if (Config.config.FORCE_ONLINEMODE_FALSE) {
+                    if (currentLine.contains("online-mode")) {
+                        if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                            writer.write("online-mode=false\n");
+                        }
+                    }
+                }
+            }
+
+            /** - Release file resources */
+            writer.close();
+            br.close();
+            reader.close();
+
+            /** - Replace current properties file with newly created properties file */
+            tempServerPropertiesFile.renameTo(serverPropertiesFile);
+        } catch (IOException e) {
+            System.out.println("Failed to update LAN server properties: ");
+            e.printStackTrace();
+        }
+
+        /** - Ensure temporary properties file is deleted if it is no longer needed */
+        if (serverPropertiesFile.exists() && tempServerPropertiesFile.exists()) {
+            tempServerPropertiesFile.delete();
         }
     }
 }
