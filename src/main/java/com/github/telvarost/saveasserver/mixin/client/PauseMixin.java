@@ -6,7 +6,6 @@ import io.github.prospector.modmenu.gui.ModMenuButtonWidget;
 import io.github.prospector.modmenu.mixin.MixinGuiButton;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.*;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -27,7 +26,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
-import java.util.Scanner;
 
 @Environment(EnvType.CLIENT)
 @Mixin(GameMenuScreen.class)
