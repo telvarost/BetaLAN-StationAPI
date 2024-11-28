@@ -41,14 +41,19 @@ public class WorldPropertiesMixin {
                 playerDataDir.mkdirs();
             }
 
-            NbtCompound var2 = new NbtCompound();
             Minecraft minecraft = (Minecraft)FabricLoader.getInstance().getGameInstance();
-            File var4 = new File(playerDataDir, minecraft.session.username + ".dat");
-            if (var4.exists()) {
-                var2 = NbtIo.readCompressed(new FileInputStream(var4));
+            if (  (null  != minecraft.world)
+               && (false == minecraft.world.isRemote)
+               )
+            {
+                NbtCompound var2 = new NbtCompound();
+                File var4 = new File(playerDataDir, minecraft.session.username + ".dat");
+                if (var4.exists()) {
+                    var2 = NbtIo.readCompressed(new FileInputStream(var4));
+                }
+                this.playerNbt = var2;
+                serverLock.delete();
             }
-            this.playerNbt = var2;
-            serverLock.delete();
 
         } catch (Exception var5) {
             Minecraft minecraft = (Minecraft)FabricLoader.getInstance().getGameInstance();
