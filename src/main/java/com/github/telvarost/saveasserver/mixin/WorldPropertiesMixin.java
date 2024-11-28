@@ -6,7 +6,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.world.WorldProperties;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -46,12 +48,15 @@ public class WorldPropertiesMixin {
                && (false == minecraft.world.isRemote)
                )
             {
-                NbtCompound var2 = new NbtCompound();
+                NbtCompound readPlayerNbt = new NbtCompound();
                 File var4 = new File(playerDataDir, minecraft.session.username + ".dat");
                 if (var4.exists()) {
-                    var2 = NbtIo.readCompressed(new FileInputStream(var4));
+                    readPlayerNbt = NbtIo.readCompressed(new FileInputStream(var4));
+                    NbtList posNbt = readPlayerNbt.getList("Pos");
+                    double playerYLevel = ((NbtDouble)posNbt.get(1)).value + 2.0;
+                    ((NbtDouble)posNbt.get(1)).value = playerYLevel;
                 }
-                this.playerNbt = var2;
+                this.playerNbt = readPlayerNbt;
                 serverLock.delete();
             }
 

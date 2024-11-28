@@ -6,13 +6,14 @@ import io.github.prospector.modmenu.mixin.MixinGuiButton;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.GameMenuScreen;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.*;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.stat.Stats;
+import net.minecraft.world.World;
 import net.modificationstation.stationapi.api.entity.player.PlayerHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -39,24 +40,34 @@ public class PauseMixin extends Screen {
         this.buttons.add(new ModMenuButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20,  translationStorage.get("menu.saveasserver.opentolan")));
     }
 
+    @Inject(
+            method = "buttonClicked",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/World;disconnect()V"
+            ),
+            cancellable = true
+    )
+    protected void saveAsServer_disconnectButtonClicked(ButtonWidget arg, CallbackInfo ci) {
+        if (null != ModHelper.ModHelperFields.CurrentServer) {
+            ModHelper.ModHelperFields.CurrentServer.destroy();
+        }
+    }
+
     @Inject(method = "buttonClicked", at = @At("RETURN"), cancellable = true)
-    protected void buttonClicked(ButtonWidget arg, CallbackInfo ci) {
+    protected void saveAsServer_openToLanButtonClicked(ButtonWidget arg, CallbackInfo ci) {
         if (arg.id == 73) {
             PlayerEntity player = PlayerHelper.getPlayerFromGame();
-            if (null != player)
-            {
-                saveClientPlayerData(player);
+            if (null != player) {
+                prepareAndLaunchServer(player);
             }
-
-            // Prepare Server Screen
-            //this.minecraft.setScreen(new PackScreen(this));
-            // Launch and Join
         }
     }
 
     @Unique
-    private void saveClientPlayerData(PlayerEntity player) {
+    private void prepareAndLaunchServer(PlayerEntity player) {
         try {
+            /** - Get server files and create server lock */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
             File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
             File serverLock = new File(worldDir, "server.lock");
@@ -68,6 +79,7 @@ public class PauseMixin extends Screen {
                 playerDataDir.mkdirs();
             }
 
+            /** - Save client player data to server player file */
             NbtCompound var2 = new NbtCompound();
             player.write(var2);
             File var3 = new File(playerDataDir, "_tmp_.dat");
@@ -76,10 +88,47 @@ public class PauseMixin extends Screen {
             if (var4.exists()) {
                 var4.delete();
             }
-
             var3.renameTo(var4);
-        } catch (Exception var5) {
-            System.out.println("Failed to save player data for " + this.minecraft.session.username);
+
+            /** - Close client world */
+            this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
+            if (this.minecraft.isWorldRemote()) {
+                this.minecraft.world.disconnect();
+            }
+            this.minecraft.setWorld((World)null);
+            this.minecraft.setScreen(new TitleScreen());
+
+            /** - Launch server */
+            ProcessBuilder pb = new ProcessBuilder("java", "-jar", "local-babric-server.0.16.9.jar");
+            pb.directory(Minecraft.getRunDirectory());
+            ModHelper.ModHelperFields.CurrentServer = pb.start();
+
+//            new Thread(new Runnable() {
+//                public void run() {
+//                    try {
+//                        File serverFile = new File(Minecraft.getRunDirectory(), "local-babric-server.0.16.9.jar");
+//                        URL serverUrl = serverFile.toURI().toURL();
+//                        JarClassLoader loader = new JarClassLoader(serverUrl);
+//                        String main = null;
+//                        main = loader.getMainClassName();
+//                        String[] args = {""};
+//                        loader.invokeClass(main, args);
+//                    } catch (IOException e) {
+//                        System.out.println("IOException: Failed to start LAN server\n" + e.toString());
+//                    } catch (ClassNotFoundException e) {
+//                        System.out.println("ClassNotFoundException: Failed to start LAN server\n" + e.toString());
+//                    } catch (NoSuchMethodException e) {
+//                        System.out.println("NoSuchMethodException: Failed to start LAN server\n" + e.toString());
+//                    } catch (InvocationTargetException e) {
+//                        System.out.println("InvocationTargetException: Failed to start LAN server\n");
+//                        e.printStackTrace();
+//                    } catch (Exception ex) {
+//                        System.out.println("Exception: Failed to start LAN server\n" + ex.toString());
+//                    }
+//                }
+//            }).start();
+        } catch (Exception ex) {
+            System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
     }
 }
