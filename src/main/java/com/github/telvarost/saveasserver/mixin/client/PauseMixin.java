@@ -130,7 +130,11 @@ public class PauseMixin extends Screen {
             }
 
             /** - Extract server jar file */
-            // TODO
+            File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
+            if (!storedServerJar.exists()) {
+                ModHelper.copy( getClass().getResourceAsStream("/assets/saveasserver/local-babric-server.0.16.9.jar")
+                              , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
+            }
 
             /** - Launch server */
             String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
