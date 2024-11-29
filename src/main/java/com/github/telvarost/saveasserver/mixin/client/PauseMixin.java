@@ -141,6 +141,7 @@ public class PauseMixin extends Screen {
             ModHelper.ModHelperFields.CurrentServer = pb.start();
 
             /** - Monitor server to see when world is ready */
+            // TODO: Start Loading Progress bar and give more info on loading percentage
             File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
             while (!saveAsServerBegin.exists());
             saveAsServerBegin.delete();
@@ -149,6 +150,7 @@ public class PauseMixin extends Screen {
             while (!saveAsServerEnd.exists());
             saveAsServerEnd.delete();
             System.out.println("Done loading LAN server!");
+            // TODO: Have client join the server
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
