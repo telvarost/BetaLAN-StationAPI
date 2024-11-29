@@ -1,5 +1,6 @@
 package com.github.telvarost.saveasserver.mixin.server;
 
+import com.github.telvarost.saveasserver.ModHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -26,17 +27,21 @@ public class PlayerManagerMixin {
 
     @Inject(method = "disconnect", at = @At("RETURN"), cancellable = true)
     public void disconnect(ServerPlayerEntity player, CallbackInfo ci) {
-        if (  (null != player)
-           && (_serverHost == player.name)
-        ) {
-            server.stop();
+        if (ModHelper.ModHelperFields.IsClientServer) {
+            if ((null != player)
+                    && (_serverHost == player.name)
+            ) {
+                server.stop();
+            }
         }
     }
 
     @Inject(method = "connectPlayer", at = @At("HEAD"), cancellable = true)
     public void connectPlayer(ServerLoginNetworkHandler loginNetworkHandler, String name, CallbackInfoReturnable<ServerPlayerEntity> cir) {
-        if (null == _serverHost) {
-            _serverHost = name;
+        if (ModHelper.ModHelperFields.IsClientServer) {
+            if (null == _serverHost) {
+                _serverHost = name;
+            }
         }
     }
 }

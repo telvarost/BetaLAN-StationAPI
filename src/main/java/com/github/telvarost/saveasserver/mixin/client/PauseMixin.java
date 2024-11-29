@@ -47,20 +47,6 @@ public class PauseMixin extends Screen {
         }
     }
 
-//    @Inject(
-//            method = "buttonClicked",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Lnet/minecraft/world/World;disconnect()V"
-//            ),
-//            cancellable = true
-//    )
-//    protected void saveAsServer_disconnectButtonClicked(ButtonWidget arg, CallbackInfo ci) {
-//        if (null != ModHelper.ModHelperFields.CurrentServer) {
-//            //ModHelper.ModHelperFields.CurrentServer.destroy();
-//        }
-//    }
-
     @Inject(method = "buttonClicked", at = @At("RETURN"), cancellable = true)
     protected void saveAsServer_openToLanButtonClicked(ButtonWidget arg, CallbackInfo ci) {
         if (arg.id == 73) {
@@ -136,18 +122,17 @@ public class PauseMixin extends Screen {
                               , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
             }
 
+            /** - Create file telling the server it is a local server */
+            File clientLockFile = new File(Minecraft.getRunDirectory(), "client.lock");
+            if (!clientLockFile.exists()) {
+                clientLockFile.createNewFile();
+            }
+
             /** - Launch server */
             String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
-//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//                public void run() {
-//                    if (null != ModHelper.ModHelperFields.CurrentServer) {
-//                        ModHelper.ModHelperFields.CurrentServer.destroy();
-//                    }
-//                }
-//            }, "ShutdownServer-thread"));
 
             /** - Monitor server to see when world is ready */
             // Also need to create a loading screen to display monitored data

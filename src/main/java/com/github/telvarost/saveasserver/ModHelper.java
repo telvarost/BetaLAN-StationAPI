@@ -35,5 +35,6 @@ public class ModHelper {
     public static class ModHelperFields {
         public static Process CurrentServer = null;
         public static String CurrentWorldFolder = "";
+        public static Boolean IsClientServer = false;
     }
 }
