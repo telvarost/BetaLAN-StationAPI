@@ -128,6 +128,12 @@ public class PauseMixin extends Screen {
                 clientLockFile.createNewFile();
             }
 
+            /** - Prepare folder for server logging info to client */
+            File saveAsServerFolder = new File(Minecraft.getRunDirectory(), "logging");
+            if (!saveAsServerFolder.exists()) {
+                saveAsServerFolder.mkdirs();
+            }
+
             /** - Launch server */
             String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
@@ -135,28 +141,14 @@ public class PauseMixin extends Screen {
             ModHelper.ModHelperFields.CurrentServer = pb.start();
 
             /** - Monitor server to see when world is ready */
-            // Also need to create a loading screen to display monitored data
-//            new Thread(new Runnable() {
-//                public void run() {
-//                    try {
-//                        RandomAccessFile in = new RandomAccessFile("server.log", "r");
-//                        String line;
-//                        while (true) {
-//                            if ((line = in.readLine()) != null) {
-//                                System.out.println(line);
-//                            } else {
-//                                Thread.sleep(1000); // poll the file every 1 second
-//                            }
-//                        }
-//                    } catch (FileNotFoundException e) {
-//                        throw new RuntimeException(e);
-//                    } catch (InterruptedException e) {
-//                        throw new RuntimeException(e);
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//            }).start();
+            File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
+            while (!saveAsServerBegin.exists());
+            saveAsServerBegin.delete();
+            System.out.println("Preparing LAN server...");
+            File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
+            while (!saveAsServerEnd.exists());
+            saveAsServerEnd.delete();
+            System.out.println("Done loading LAN server!");
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
