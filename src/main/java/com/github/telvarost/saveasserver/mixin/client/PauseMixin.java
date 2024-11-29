@@ -47,19 +47,19 @@ public class PauseMixin extends Screen {
         }
     }
 
-    @Inject(
-            method = "buttonClicked",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;disconnect()V"
-            ),
-            cancellable = true
-    )
-    protected void saveAsServer_disconnectButtonClicked(ButtonWidget arg, CallbackInfo ci) {
-        if (null != ModHelper.ModHelperFields.CurrentServer) {
-            ModHelper.ModHelperFields.CurrentServer.destroy();
-        }
-    }
+//    @Inject(
+//            method = "buttonClicked",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/World;disconnect()V"
+//            ),
+//            cancellable = true
+//    )
+//    protected void saveAsServer_disconnectButtonClicked(ButtonWidget arg, CallbackInfo ci) {
+//        if (null != ModHelper.ModHelperFields.CurrentServer) {
+//            //ModHelper.ModHelperFields.CurrentServer.destroy();
+//        }
+//    }
 
     @Inject(method = "buttonClicked", at = @At("RETURN"), cancellable = true)
     protected void saveAsServer_openToLanButtonClicked(ButtonWidget arg, CallbackInfo ci) {
@@ -141,13 +141,13 @@ public class PauseMixin extends Screen {
             ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
             pb.directory(Minecraft.getRunDirectory());
             ModHelper.ModHelperFields.CurrentServer = pb.start();
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                public void run() {
-                    if (null != ModHelper.ModHelperFields.CurrentServer) {
-                        ModHelper.ModHelperFields.CurrentServer.destroy();
-                    }
-                }
-            }, "ShutdownServer-thread"));
+//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//                public void run() {
+//                    if (null != ModHelper.ModHelperFields.CurrentServer) {
+//                        ModHelper.ModHelperFields.CurrentServer.destroy();
+//                    }
+//                }
+//            }, "ShutdownServer-thread"));
 
             /** - Monitor server to see when world is ready */
             // Also need to create a loading screen to display monitored data

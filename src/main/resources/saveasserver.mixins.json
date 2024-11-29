@@ -8,6 +8,8 @@
     "WorldPropertiesMixin"
   ],
   "server": [
+    "server.MinecraftServerMixin",
+    "server.PlayerManagerMixin"
   ],
   "client": [
     "client.PauseMixin"
