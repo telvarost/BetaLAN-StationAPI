@@ -1,7 +1,6 @@
 package com.github.telvarost.saveasserver.mixin.server;
 
 import com.github.telvarost.saveasserver.ModHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.world.storage.WorldStorageSource;
@@ -25,7 +24,7 @@ public abstract class MinecraftServerMixin {
 
     @Inject(method = "loadWorld", at = @At("HEAD"), cancellable = true)
     private void loadWorld(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
-        File clientLockFile = new File(Minecraft.getRunDirectory(), "client.lock");
+        File clientLockFile = new File("client.lock");
         if (clientLockFile.exists()) {
             ModHelper.ModHelperFields.IsClientServer = true;
         }
