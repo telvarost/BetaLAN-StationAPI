@@ -83,14 +83,6 @@ public class PauseMixin extends Screen {
             }
             tempPlayerFile.renameTo(playerFile);
 
-            /** - Close client world */
-            this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
-            if (this.minecraft.isWorldRemote()) {
-                this.minecraft.world.disconnect();
-            }
-            this.minecraft.setWorld((World)null);
-            this.minecraft.setScreen(new TitleScreen());
-
             /** - Create/edit LAN server OP list */
             if (Config.config.AUTO_OP_LAN_SERVER_HOST) {
                 File serverOpListFile = new File(Minecraft.getRunDirectory(), "ops.txt");
@@ -134,23 +126,14 @@ public class PauseMixin extends Screen {
                 saveAsServerFolder.mkdirs();
             }
 
-            /** - Launch server */
-            String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
-            ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
-            pb.directory(Minecraft.getRunDirectory());
-            ModHelper.ModHelperFields.CurrentServer = pb.start();
-
-            /** - Monitor server to see when world is ready */
-            // TODO: Start Loading Progress bar and give more info on loading percentage
-            File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
-            while (!saveAsServerBegin.exists());
-            saveAsServerBegin.delete();
-            System.out.println("Preparing LAN server...");
-            File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
-            while (!saveAsServerEnd.exists());
-            saveAsServerEnd.delete();
-            System.out.println("Done loading LAN server!");
-            // TODO: Have client join the server
+            /** - Close client world */
+            ModHelper.ModHelperFields.LaunchingLocalServer = true;
+            this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
+            if (this.minecraft.isWorldRemote()) {
+                this.minecraft.world.disconnect();
+            }
+            this.minecraft.setWorld((World)null);
+            this.minecraft.setScreen(new TitleScreen());
         } catch (Exception ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }

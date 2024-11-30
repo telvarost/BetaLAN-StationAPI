@@ -12,7 +12,8 @@
     "server.PlayerManagerMixin"
   ],
   "client": [
-    "client.PauseMixin"
+    "client.PauseMixin",
+    "client.TitleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
