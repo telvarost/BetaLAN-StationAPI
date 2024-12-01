@@ -6,9 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.resource.language.TranslationStorage;
-import org.lwjgl.input.Keyboard;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,28 +13,20 @@ import java.io.IOException;
 @Environment(EnvType.CLIENT)
 public class JoinLocalServerScreen extends Screen {
     private Screen parent;
-    private TextFieldWidget serverField;
+    private int progress = 0;
 
     public JoinLocalServerScreen(Screen parent) {
         this.parent = parent;
     }
 
-    public void tick() {
-        this.serverField.tick();
-    }
-
     public void init() {
         ModHelper.ModHelperFields.LaunchingLocalServer = false;
-        TranslationStorage var1 = TranslationStorage.getInstance();
-        Keyboard.enableRepeatEvents(true);
         this.buttons.clear();
-        this.buttons.add(new ButtonWidget(0, this.width / 2 - 100, this.height / 4 + 96 + 12, var1.get("multiplayer.connect")));
-        this.buttons.add(new ButtonWidget(1, this.width / 2 - 100, this.height / 4 + 120 + 12, var1.get("gui.cancel")));
-        String var2 = this.minecraft.options.lastServer.replaceAll("_", ":");
-        ((ButtonWidget)this.buttons.get(0)).active = var2.length() > 0;
-        this.serverField = new TextFieldWidget(this, this.textRenderer, this.width / 2 - 100, this.height / 4 - 10 + 50 + 18, 200, 20, var2);
-        this.serverField.focused = true;
-        this.serverField.setMaxLength(128);
+
+        /** - Prepare loading bar */
+        this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
+        this.minecraft.progressRenderer.progressStage("Loading World");
+        this.minecraft.progressRenderer.progressStagePercentage(0);
 
         /** - Launch server */
         String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
@@ -48,55 +37,54 @@ public class JoinLocalServerScreen extends Screen {
         } catch (IOException ex) {
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
+    }
 
+    public void tick() {
+        // TODO: Give more info on loading percentage
+        
         /** - Monitor server to see when world is ready */
-        // TODO: Start Loading Progress bar and give more info on loading percentage
         File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
-        while (!saveAsServerBegin.exists());
-        saveAsServerBegin.delete();
-        System.out.println("Preparing LAN server...");
-        File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
-        while (!saveAsServerEnd.exists());
-        saveAsServerEnd.delete();
-        System.out.println("Done loading LAN server!");
-        // TODO: Have client join the server
-    }
-
-    public void removed() {
-        Keyboard.enableRepeatEvents(false);
-    }
-
-    protected void buttonClicked(ButtonWidget button) {
-        if (button.active) {
-            if (button.id == 1) {
-                this.minecraft.setScreen(this.parent);
-            } else if (button.id == 0) {
-                String var2 = this.serverField.getText().trim();
-                this.minecraft.options.lastServer = var2.replaceAll(":", "_");
-                this.minecraft.options.save();
-                String[] var3 = var2.split(":");
-                if (var2.startsWith("[")) {
-                    int var4 = var2.indexOf("]");
-                    if (var4 > 0) {
-                        String var5 = var2.substring(1, var4);
-                        String var6 = var2.substring(var4 + 1).trim();
-                        if (var6.startsWith(":") && var6.length() > 0) {
-                            var6 = var6.substring(1);
-                            var3 = new String[]{var5, var6};
-                        } else {
-                            var3 = new String[]{var5};
-                        }
-                    }
-                }
-
-                if (var3.length > 2) {
-                    var3 = new String[]{var2};
-                }
-
-                this.minecraft.setScreen(new ConnectScreen(this.minecraft, var3[0], var3.length > 1 ? this.parseInt(var3[1], 25565) : 25565));
-            }
-
+        if (saveAsServerBegin.exists()) {
+            progress = 25;
+            saveAsServerBegin.delete();
+            System.out.println("Preparing LAN server...");
         }
+
+        File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
+        if (saveAsServerEnd.exists()) {
+            progress = 75;
+            saveAsServerEnd.delete();
+            System.out.println("Done loading LAN server!");
+
+            /** - Have the client join the local server */
+            joinLocalServer();
+        }
+    }
+
+    private void joinLocalServer() {
+        String var2 = "127.0.0.1:" + Config.config.SERVER_PORT;
+        this.minecraft.options.lastServer = var2.replaceAll(":", "_");
+        this.minecraft.options.save();
+        String[] var3 = var2.split(":");
+        if (var2.startsWith("[")) {
+            int var4 = var2.indexOf("]");
+            if (var4 > 0) {
+                String var5 = var2.substring(1, var4);
+                String var6 = var2.substring(var4 + 1).trim();
+                if (var6.startsWith(":") && var6.length() > 0) {
+                    var6 = var6.substring(1);
+                    var3 = new String[]{var5, var6};
+                } else {
+                    var3 = new String[]{var5};
+                }
+            }
+        }
+
+        if (var3.length > 2) {
+            var3 = new String[]{var2};
+        }
+
+        this.minecraft.setScreen(new ConnectScreen(this.minecraft, var3[0], var3.length > 1 ? this.parseInt(var3[1], 25565) : 25565));
     }
 
     private int parseInt(String s, int defaultValue) {
@@ -107,28 +95,23 @@ public class JoinLocalServerScreen extends Screen {
         }
     }
 
-    protected void keyPressed(char character, int keyCode) {
-        this.serverField.keyPressed(character, keyCode);
-        if (character == '\r') {
-            this.buttonClicked((ButtonWidget)this.buttons.get(0));
-        }
+    public void removed() {
+        /** - Do nothing */
+    }
 
-        ((ButtonWidget)this.buttons.get(0)).active = this.serverField.getText().length() > 0;
+    protected void buttonClicked(ButtonWidget button) {
+        /** - Do nothing */
+    }
+
+    protected void keyPressed(char character, int keyCode) {
+        /** - Do nothing */
     }
 
     protected void mouseClicked(int mouseX, int mouseY, int button) {
-        super.mouseClicked(mouseX, mouseY, button);
-        this.serverField.mouseClicked(mouseX, mouseY, button);
+        /** - Do nothing */
     }
 
     public void render(int mouseX, int mouseY, float delta) {
-        TranslationStorage var4 = TranslationStorage.getInstance();
-        this.renderBackground();
-        this.drawCenteredTextWithShadow(this.textRenderer, var4.get("multiplayer.title"), this.width / 2, this.height / 4 - 60 + 20, 16777215);
-        this.drawTextWithShadow(this.textRenderer, var4.get("multiplayer.info1"), this.width / 2 - 140, this.height / 4 - 60 + 60 + 0, 10526880);
-        this.drawTextWithShadow(this.textRenderer, var4.get("multiplayer.info2"), this.width / 2 - 140, this.height / 4 - 60 + 60 + 9, 10526880);
-        this.drawTextWithShadow(this.textRenderer, var4.get("multiplayer.ipinfo"), this.width / 2 - 140, this.height / 4 - 60 + 60 + 36, 10526880);
-        this.serverField.render();
-        super.render(mouseX, mouseY, delta);
+        this.minecraft.progressRenderer.progressStagePercentage(progress);
     }
 }
