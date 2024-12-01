@@ -26,6 +26,10 @@ public abstract class MinecraftServerMixin {
 
     @Unique private int serverTicks = 0;
 
+    @Unique private int loadingLevel = 0;
+
+    @Unique private int currentProgress = 0;
+
     @Inject(method = "loadWorld", at = @At("HEAD"), cancellable = true)
     private void saveAsServer_loadWorldHead(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
         File clientLockFile = new File("client.lock");
@@ -41,8 +45,38 @@ public abstract class MinecraftServerMixin {
         }
     }
 
+    @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/logging/Logger;info(Ljava/lang/String;)V",
+                    ordinal = 1
+            ),
+            cancellable = true
+    )
+    private void saveAsServer_currentlyLoadingLevel(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
+        File saveAsServerEnd = new File("logging" + File.separator + "loading-level-" + loadingLevel);
+        try {
+            saveAsServerEnd.createNewFile();
+        } catch (IOException e) {
+            System.out.println("Failed to log server actions to client: " + e.toString());
+        }
+        loadingLevel++;
+    }
+
+    @Inject(method = "logProgress", at = @At("RETURN"), cancellable = true)
+    private void saveAsServer_logProgress(String progressType, int progress, CallbackInfo ci) {
+        File saveAsServerEnd = new File("logging" + File.separator + "level-progress-" + progress);
+        try {
+            saveAsServerEnd.createNewFile();
+        } catch (IOException e) {
+            System.out.println("Failed to log level loading progress to client.");
+        }
+    }
+
     @Inject(method = "loadWorld", at = @At("RETURN"), cancellable = true)
     private void saveAsServer_loadWorldReturn(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
+        loadingLevel = 0;
         File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
         try {
             saveAsServerEnd.createNewFile();
@@ -52,7 +86,7 @@ public abstract class MinecraftServerMixin {
     }
 
     @Inject(method = "tick", at = @At("RETURN"), cancellable = true)
-    private void tick(CallbackInfo ci) {
+    private void saveAsServer_tick(CallbackInfo ci) {
         serverTicks++;
 
         if (1000 < serverTicks) {

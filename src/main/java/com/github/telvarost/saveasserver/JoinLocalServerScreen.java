@@ -14,6 +14,8 @@ import java.io.IOException;
 public class JoinLocalServerScreen extends Screen {
     private Screen parent;
     private int progress = 0;
+    private int currentTick = 0;
+    private boolean preparationStarted = false;
 
     public JoinLocalServerScreen(Screen parent) {
         this.parent = parent;
@@ -22,10 +24,13 @@ public class JoinLocalServerScreen extends Screen {
     public void init() {
         ModHelper.ModHelperFields.LaunchingLocalServer = false;
         this.buttons.clear();
+        this.currentTick = 0;
+        this.preparationStarted = false;
 
         /** - Prepare loading bar */
+        this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
         this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
-        this.minecraft.progressRenderer.progressStage("Loading World");
+        this.minecraft.progressRenderer.progressStage("Preparing world");
         this.minecraft.progressRenderer.progressStagePercentage(0);
 
         /** - Launch server */
@@ -40,24 +45,58 @@ public class JoinLocalServerScreen extends Screen {
     }
 
     public void tick() {
-        // TODO: Give more info on loading percentage
+        currentTick++;
 
-        /** - Monitor server to see when world is ready */
-        File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
-        if (saveAsServerBegin.exists()) {
-            progress = 25;
-            saveAsServerBegin.delete();
-            System.out.println("Preparing LAN server...");
+        /** - Check for server loading start file */
+        if (2 == currentTick) {
+            File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
+            if (saveAsServerBegin.exists()) {
+                preparationStarted = true;
+                saveAsServerBegin.delete();
+
+                System.out.println("Preparing LAN server...");
+            }
         }
 
-        File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
-        if (saveAsServerEnd.exists()) {
-            progress = 75;
-            saveAsServerEnd.delete();
-            System.out.println("Done loading LAN server!");
+        /** - Check for server loading files */
+        if (  (preparationStarted)
+           && (4 == currentTick)
+        ) {
+            File[] files = new File("logging").listFiles();
+            String searchLevel = "loading-level";
+            String searchProgress = "level-progress";
+            for(File currentFile : files){
+                String fileName = currentFile.getName();
 
-            /** - Have the client join the local server */
-            joinLocalServer();
+                if(fileName.toLowerCase().indexOf(searchLevel.toLowerCase()) != -1)
+                {
+                    String levelString = fileName.substring("loading-level-".length());
+                    this.minecraft.progressRenderer.progressStage("Preparing start region for level " + levelString);
+                    progress = 0;
+                    currentFile.delete();
+                }
+
+                if(fileName.toLowerCase().indexOf(searchProgress.toLowerCase()) != -1)
+                {
+                    String progressString = fileName.substring("level-progress-".length());
+                    progress = parseInt(progressString, progress);
+                    currentFile.delete();
+                }
+            }
+        }
+
+        /** - Check for server loading finished file */
+        if (5 < currentTick) {
+            currentTick = 0;
+            File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
+            if (saveAsServerEnd.exists()) {
+                progress = 100;
+                saveAsServerEnd.delete();
+
+                /** - Have the client join the local server */
+                System.out.println("Done loading LAN server!");
+                joinLocalServer();
+            }
         }
     }
 

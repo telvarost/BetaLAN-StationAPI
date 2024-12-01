@@ -30,7 +30,7 @@ public class Config {
                 name = "Server GUI Enabled",
                 description = "Helps with issuing commands and monitoring"
         )
-        public Boolean SERVER_GUI_ENABLED = true;
+        public Boolean SERVER_GUI_ENABLED = false;
 
         @ConfigEntry(
                 name = "Server Port",
