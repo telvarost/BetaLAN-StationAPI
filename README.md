@@ -5,7 +5,8 @@ A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server 
 
 ## Details
 
-Mod now works but is very basic. Currently, it clears the world name on launch.
+* I strongly recommend launching the server jar from your .minecraft directory if the loading bar gets stuck at "Preparing World"
+  * Most likely it crashed due to a mod incompatibility
 
 ## Installation using Prism Launcher
 
