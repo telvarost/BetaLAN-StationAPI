@@ -29,37 +29,41 @@ public class JoinLocalServerScreen extends Screen {
         this.currentTick = 0;
         this.preparationStarted = false;
 
-        /** - Prepare logging folder */
-        File[] files = new File("logging").listFiles();
-        for(File currentFile : files){
-            currentFile.delete();
-        }
+        if (false == ModHelper.ModHelperFields.IsServerLaunched) {
+            ModHelper.ModHelperFields.IsServerLaunched = true;
 
-        /** - Prepare loading bar */
-        this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
-        this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
-        this.minecraft.progressRenderer.progressStage("Preparing world");
-        this.minecraft.progressRenderer.progressStagePercentage(0);
+            /** - Prepare logging folder */
+            File[] files = new File("logging").listFiles();
+            for(File currentFile : files){
+                currentFile.delete();
+            }
 
-        /** - Launch server */
-        String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
-        ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
-        pb.directory(Minecraft.getRunDirectory());
-        try {
-            ModHelper.ModHelperFields.CurrentServer = pb.start();
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                public void run() {
-                    if (null != ModHelper.ModHelperFields.CurrentServer) {
-                        Minecraft client = (Minecraft)FabricLoader.getInstance().getGameInstance();
-                        if (null != client) {
-                            client.setScreen(new TitleScreen());
+            /** - Prepare loading bar */
+            this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
+            this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
+            this.minecraft.progressRenderer.progressStage("Preparing world");
+            this.minecraft.progressRenderer.progressStagePercentage(0);
+
+            /** - Launch server */
+            String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
+            ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
+            pb.directory(Minecraft.getRunDirectory());
+            try {
+                ModHelper.ModHelperFields.CurrentServer = pb.start();
+                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                    public void run() {
+                        if (null != ModHelper.ModHelperFields.CurrentServer) {
+                            Minecraft client = (Minecraft)FabricLoader.getInstance().getGameInstance();
+                            if (null != client) {
+                                client.setScreen(new TitleScreen());
+                            }
                         }
                     }
-                }
-            }, "ServerCrashMonitor-thread"));
-        } catch (IOException ex) {
-            this.minecraft.setScreen(new TitleScreen());
-            System.out.println("Failed to open client world to LAN: " + ex.toString());
+                }, "ServerCrashMonitor-thread"));
+            } catch (IOException ex) {
+                this.minecraft.setScreen(new TitleScreen());
+                System.out.println("Failed to open client world to LAN: " + ex.toString());
+            }
         }
     }
 

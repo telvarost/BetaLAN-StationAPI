@@ -127,6 +127,7 @@ public class PauseMixin extends Screen {
             }
 
             /** - Close client world */
+            ModHelper.ModHelperFields.IsServerLaunched = false;
             ModHelper.ModHelperFields.LaunchingLocalServer = true;
             this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
             if (this.minecraft.isWorldRemote()) {
@@ -218,7 +219,11 @@ public class PauseMixin extends Screen {
             writer.println("allow-nether=true");
             writer.println("spawn-monsters=true");
             writer.println("max-players=20");
-            writer.println("online-mode=false");
+            if (Config.config.FORCE_ONLINEMODE_FALSE) {
+                writer.println("online-mode=false");
+            } else {
+                writer.println("online-mode=true");
+            }
             writer.println("allow-flight=false");
 
             /** - Release file resources */

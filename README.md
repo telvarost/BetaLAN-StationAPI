@@ -3,10 +3,12 @@
 A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.
 * Configure server settings and java version using GlassConfigAPI 3 (GCAPI3).
 
-## Details
+## Troubleshooting
 
 * I strongly recommend launching the server jar from your .minecraft directory if the loading bar gets stuck at "Preparing World"
   * Most likely it crashed due to a mod incompatibility
+* Sometimes the client will crash when it joins the world, this seems to be a common bug even when joining normal servers
+  * Simply close the client, relaunch, and try again usually it goes away when trying to join a server the second time
 
 ## Installation using Prism Launcher
 
