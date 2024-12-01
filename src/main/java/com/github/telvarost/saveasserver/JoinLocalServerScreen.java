@@ -29,6 +29,12 @@ public class JoinLocalServerScreen extends Screen {
         this.currentTick = 0;
         this.preparationStarted = false;
 
+        /** - Prepare logging folder */
+        File[] files = new File("logging").listFiles();
+        for(File currentFile : files){
+            currentFile.delete();
+        }
+
         /** - Prepare loading bar */
         this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
         this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
