@@ -34,17 +34,12 @@
   ],
 
   "depends": {
-    "minecraft": "1.0.0-beta.7.3"
+    "minecraft": "1.0.0-beta.7.3",
+    "stationapi": "*"
   },
 
   "recommends": {
-    "stationapi": "*",
     "gcapi3": ">=3.0.2",
     "modmenu": "*"
-  },
-
-  "breaks": {
-    "finalbeta": "*",
-    "unitweaks": "*"
   }
 }

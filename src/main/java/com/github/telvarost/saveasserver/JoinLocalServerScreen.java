@@ -2,9 +2,11 @@ package com.github.telvarost.saveasserver;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 
 import java.io.File;
@@ -39,7 +41,18 @@ public class JoinLocalServerScreen extends Screen {
         pb.directory(Minecraft.getRunDirectory());
         try {
             ModHelper.ModHelperFields.CurrentServer = pb.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                public void run() {
+                    if (null != ModHelper.ModHelperFields.CurrentServer) {
+                        Minecraft client = (Minecraft)FabricLoader.getInstance().getGameInstance();
+                        if (null != client) {
+                            client.setScreen(new TitleScreen());
+                        }
+                    }
+                }
+            }, "ServerCrashMonitor-thread"));
         } catch (IOException ex) {
+            this.minecraft.setScreen(new TitleScreen());
             System.out.println("Failed to open client world to LAN: " + ex.toString());
         }
     }
