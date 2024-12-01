@@ -1,10 +1,11 @@
 # SaveAsServer StationAPI Edition for Minecraft Beta 1.7.3
 
 A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.
+* Configure server settings and java version using GlassConfigAPI 3 (GCAPI3).
 
 ## Details
 
-* UNDER CONSTRUCTION
+Mod now works but is very basic. Currently, it clears the world name on launch.
 
 ## Installation using Prism Launcher
 

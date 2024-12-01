@@ -41,7 +41,7 @@ public class JoinLocalServerScreen extends Screen {
 
     public void tick() {
         // TODO: Give more info on loading percentage
-        
+
         /** - Monitor server to see when world is ready */
         File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
         if (saveAsServerBegin.exists()) {
