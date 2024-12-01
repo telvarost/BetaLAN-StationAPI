@@ -37,5 +37,6 @@ public class ModHelper {
         public static Boolean IsClientServer = false;
         public static Boolean LaunchingLocalServer = false;
         public static Boolean IsServerLaunched = false;
+        public static Boolean IsPreparationStarted = false;
     }
 }

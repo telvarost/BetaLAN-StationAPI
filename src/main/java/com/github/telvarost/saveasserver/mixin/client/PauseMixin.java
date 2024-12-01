@@ -128,6 +128,7 @@ public class PauseMixin extends Screen {
 
             /** - Close client world */
             ModHelper.ModHelperFields.IsServerLaunched = false;
+            ModHelper.ModHelperFields.IsPreparationStarted = false;
             ModHelper.ModHelperFields.LaunchingLocalServer = true;
             this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
             if (this.minecraft.isWorldRemote()) {

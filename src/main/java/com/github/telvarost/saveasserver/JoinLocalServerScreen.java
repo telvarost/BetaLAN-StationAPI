@@ -17,7 +17,6 @@ public class JoinLocalServerScreen extends Screen {
     private Screen parent;
     private int progress = 0;
     private int currentTick = 0;
-    private boolean preparationStarted = false;
 
     public JoinLocalServerScreen(Screen parent) {
         this.parent = parent;
@@ -27,7 +26,6 @@ public class JoinLocalServerScreen extends Screen {
         ModHelper.ModHelperFields.LaunchingLocalServer = false;
         this.buttons.clear();
         this.currentTick = 0;
-        this.preparationStarted = false;
 
         if (false == ModHelper.ModHelperFields.IsServerLaunched) {
             ModHelper.ModHelperFields.IsServerLaunched = true;
@@ -74,7 +72,7 @@ public class JoinLocalServerScreen extends Screen {
         if (2 == currentTick) {
             File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
             if (saveAsServerBegin.exists()) {
-                preparationStarted = true;
+                ModHelper.ModHelperFields.IsPreparationStarted = true;
                 saveAsServerBegin.delete();
 
                 System.out.println("Preparing LAN server...");
@@ -82,7 +80,7 @@ public class JoinLocalServerScreen extends Screen {
         }
 
         /** - Check for server loading files */
-        if (  (preparationStarted)
+        if (  (ModHelper.ModHelperFields.IsPreparationStarted)
            && (4 == currentTick)
         ) {
             File[] files = new File("logging").listFiles();
