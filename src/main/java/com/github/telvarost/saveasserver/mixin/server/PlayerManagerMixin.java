@@ -28,8 +28,8 @@ public class PlayerManagerMixin {
     @Inject(method = "disconnect", at = @At("RETURN"), cancellable = true)
     public void disconnect(ServerPlayerEntity player, CallbackInfo ci) {
         if (ModHelper.ModHelperFields.IsClientServer) {
-            if ((null != player)
-                    && (_serverHost == player.name)
+            if (  (null != player)
+               && (_serverHost == player.name)
             ) {
                 server.stop();
             }

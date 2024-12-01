@@ -1,6 +1,8 @@
 package com.github.telvarost.saveasserver.mixin;
 
 import com.github.telvarost.saveasserver.ModHelper;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
@@ -23,6 +25,17 @@ import java.io.FileInputStream;
 public class WorldPropertiesMixin {
 
     @Shadow private NbtCompound playerNbt;
+
+    @WrapOperation(
+            method = "updateProperties",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/nbt/NbtCompound;putString(Ljava/lang/String;Ljava/lang/String;)V"
+            )
+    )
+    private void updateProperties(NbtCompound instance, String value, String s, Operation<Void> original) {
+        original.call(instance, value, s.replace("./saves/", ""));
+    }
 
     @Environment(EnvType.CLIENT)
     @Inject(

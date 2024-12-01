@@ -29,12 +29,11 @@ public class ModHelper {
         }
 
         return succeess;
-
     }
 
     public static class ModHelperFields {
-        public static Process CurrentServer = null;
         public static String CurrentWorldFolder = "";
+        public static Process CurrentServer = null;
         public static Boolean IsClientServer = false;
         public static Boolean LaunchingLocalServer = false;
     }
