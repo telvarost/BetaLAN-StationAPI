@@ -60,13 +60,9 @@ public class PauseMixin extends Screen {
     @Unique
     private void prepareAndLaunchServer(PlayerEntity player) {
         try {
-            /** - Get server files and create server lock */
+            /** - Get server files */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
             File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
-            File serverLock = new File(worldDir, "server.lock");
-            if (!serverLock.exists()) {
-                serverLock.createNewFile();
-            }
             File playerDataDir = new File(worldDir, "players");
             if (!playerDataDir.exists()) {
                 playerDataDir.mkdirs();

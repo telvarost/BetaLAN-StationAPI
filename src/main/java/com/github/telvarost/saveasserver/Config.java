@@ -15,6 +15,11 @@ public class Config {
         public Boolean AUTO_OP_LAN_SERVER_HOST = true;
 
         @ConfigEntry(
+                name = "Backup World On Server Launch"
+        )
+        public Boolean BACKUP_WORLD_ON_LAN_SERVER_LAUNCH = true;
+
+        @ConfigEntry(
                 name = "Force \"online-mode\" To False"
         )
         public Boolean FORCE_ONLINEMODE_FALSE = true;
