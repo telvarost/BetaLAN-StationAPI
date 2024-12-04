@@ -10,7 +10,13 @@ import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Environment(EnvType.CLIENT)
 public class JoinLocalServerScreen extends Screen {
@@ -22,11 +28,105 @@ public class JoinLocalServerScreen extends Screen {
         this.parent = parent;
     }
 
+    private List <String> fileList;
+
+    public void zipIt(String zipFile) {
+        File savesDir = new File(Minecraft.getRunDirectory(), "saves");
+        File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+        byte[] buffer = new byte[1024];
+        String source = worldDir.getName();
+        FileOutputStream fos = null;
+        ZipOutputStream zos = null;
+        try {
+            fos = new FileOutputStream(zipFile);
+            zos = new ZipOutputStream(fos);
+
+            System.out.println("Output to Zip : " + zipFile);
+            FileInputStream in = null;
+
+            for (String file: this.fileList) {
+                System.out.println("File Added : " + file);
+                //ZipEntry ze = new ZipEntry(source + File.separator + file);
+                ZipEntry ze = new ZipEntry(file);
+                zos.putNextEntry(ze);
+                try {
+                    in = new FileInputStream(worldDir.getAbsolutePath().replaceAll("\\\\", "/") + File.separator + file);
+                    int len;
+                    while ((len = in .read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
+                } finally {
+                    in.close();
+                }
+            }
+
+            zos.closeEntry();
+            System.out.println("Folder successfully compressed");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                zos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void generateFileList(File node) {
+        // add file only
+        if (node.isFile()) {
+            fileList.add(generateZipEntry(node.getAbsolutePath().replaceAll("\\\\", "/")));
+        }
+
+        if (node.isDirectory()) {
+            String[] subNote = node.list();
+            for (String filename: subNote) {
+                generateFileList(new File(node, filename));
+            }
+        }
+    }
+
+    private String generateZipEntry(String file) {
+        File savesDir = new File(Minecraft.getRunDirectory(), "saves");
+        File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+        return file.substring(worldDir.getAbsolutePath().replaceAll("\\\\", "/").length() + 1, file.length());
+    }
+
     public void init() {
         ModHelper.ModHelperFields.LaunchingLocalServer = false;
         this.buttons.clear();
         this.currentTick = 0;
 
+        if (false == ModHelper.ModHelperFields.IsWorldBackupStarted) {
+            ModHelper.ModHelperFields.IsWorldBackupStarted = true;
+
+            /** - Prepare loading bar */
+            this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
+            this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
+            this.minecraft.progressRenderer.progressStage("Creating world backup file");
+            this.minecraft.progressRenderer.progressStagePercentage(0);
+
+            /** - Get current world backup files */
+            File savesDir = new File(Minecraft.getRunDirectory(), "saves");
+            File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+
+            /** - Prepare and zip world files */
+            fileList = new ArrayList < String > ();
+            generateFileList(worldDir);
+            zipIt("saves" + File.separator + "_" + ModHelper.ModHelperFields.CurrentWorldFolder + ".zip");
+            System.out.println("Files zipped successfully.");
+
+            /** - Set flag letting server know that it can now launch */
+            ModHelper.ModHelperFields.IsServerLaunched = false;
+        }
+    }
+
+    public void tick() {
+        currentTick++;
+
+        /** - Check to launch server */
         if (false == ModHelper.ModHelperFields.IsServerLaunched) {
             ModHelper.ModHelperFields.IsServerLaunched = true;
 
@@ -36,9 +136,7 @@ public class JoinLocalServerScreen extends Screen {
                 currentFile.delete();
             }
 
-            /** - Prepare loading bar */
-            this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
-            this.minecraft.progressRenderer.progressStartNoAbort("Opening World to LAN...");
+            /** - Update loading bar */
             this.minecraft.progressRenderer.progressStage("Preparing world");
             this.minecraft.progressRenderer.progressStagePercentage(0);
 
@@ -63,10 +161,6 @@ public class JoinLocalServerScreen extends Screen {
                 System.out.println("Failed to open client world to LAN: " + ex.toString());
             }
         }
-    }
-
-    public void tick() {
-        currentTick++;
 
         /** - Check for server loading start file */
         if (2 == currentTick) {

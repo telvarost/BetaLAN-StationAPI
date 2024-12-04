@@ -9,6 +9,9 @@ A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server 
   * Most likely it crashed due to a mod incompatibility
 * Sometimes the client will crash when it joins the world, this seems to be a common bug even when joining normal servers
   * Simply close the client, relaunch, and try again usually it goes away when trying to join a server the second time
+* In v1.1.0 and above a backup world zip file is created on server launch.
+  * The backup file's name begins with an underscore and ends with `.zip`
+  * The backup file is recreated everytime the server is launched using the current world files for the save
 
 ## Installation using Prism Launcher
 
