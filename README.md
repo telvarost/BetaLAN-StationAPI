@@ -2,6 +2,9 @@
 
 A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.
 * Configure server settings and java version using GlassConfigAPI 3 (GCAPI3).
+* In v1.1.0 and above a backup world zip file is created on server launch (if the config setting is turned on).
+  * The backup file's name begins with an underscore (`_`) and ends with `.zip`
+  * The backup file is recreated everytime the server is launched using the most recent world files
 
 ## Troubleshooting
 
@@ -9,9 +12,6 @@ A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server 
   * Most likely it crashed due to a mod incompatibility
 * Sometimes the client will crash when it joins the world, this seems to be a common bug even when joining normal servers
   * Simply close the client, relaunch, and try again usually it goes away when trying to join a server the second time
-* In v1.1.0 and above a backup world zip file is created on server launch (if the config setting is turned on).
-  * The backup file's name begins with an underscore and ends with `.zip`
-  * The backup file is recreated everytime the server is launched using the most recent world files
 
 ## Installation using Prism Launcher
 
