@@ -37,6 +37,11 @@ public abstract class MinecraftServerMixin {
             ModHelper.ModHelperFields.IsClientServer = true;
         }
 
+        File saveAsServerFolder = new File("logging");
+        if (!saveAsServerFolder.exists()) {
+            saveAsServerFolder.mkdirs();
+        }
+
         File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
         try {
             saveAsServerBegin.createNewFile();
