@@ -18,10 +18,7 @@ public class FlattenedWorldStorageMixin extends AlphaWorldStorageSource {
         super(file);
     }
 
-    @Inject(
-            method = "method_1009",
-            at = @At("HEAD")
-    )
+    @Inject(method = "method_1009", at = @At("HEAD"))
     public void method_1009(String saveName, boolean createPlayerDataDir, CallbackInfoReturnable<WorldStorage> cir) {
         ModHelper.ModHelperFields.CurrentWorldFolder = saveName;
     }

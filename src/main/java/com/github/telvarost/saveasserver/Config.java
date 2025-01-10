@@ -1,6 +1,7 @@
 package com.github.telvarost.saveasserver;
 
-import net.glasslauncher.mods.gcapi3.api.*;
+import net.glasslauncher.mods.gcapi3.api.ConfigEntry;
+import net.glasslauncher.mods.gcapi3.api.ConfigRoot;
 
 public class Config {
 

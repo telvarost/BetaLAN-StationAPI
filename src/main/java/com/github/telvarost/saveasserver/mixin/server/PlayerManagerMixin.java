@@ -25,21 +25,19 @@ public class PlayerManagerMixin {
     @Unique
     private String _serverHost = null;
 
-    @Inject(method = "disconnect", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "disconnect", at = @At("RETURN"))
     public void disconnect(ServerPlayerEntity player, CallbackInfo ci) {
         if (ModHelper.ModHelperFields.IsClientServer) {
-            if (  (null != player)
-               && (_serverHost == player.name)
-            ) {
+            if ((player != null) && (_serverHost.equals(player.name))) {
                 server.stop();
             }
         }
     }
 
-    @Inject(method = "connectPlayer", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "connectPlayer", at = @At("HEAD"))
     public void connectPlayer(ServerLoginNetworkHandler loginNetworkHandler, String name, CallbackInfoReturnable<ServerPlayerEntity> cir) {
         if (ModHelper.ModHelperFields.IsClientServer) {
-            if (null == _serverHost) {
+            if (_serverHost == null) {
                 _serverHost = name;
             }
         }

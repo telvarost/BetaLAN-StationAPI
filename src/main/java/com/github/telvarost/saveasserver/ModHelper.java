@@ -1,6 +1,7 @@
 package com.github.telvarost.saveasserver;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -10,13 +11,11 @@ public class ModHelper {
     /**
      * Copy a file from source to destination.
      *
-     * @param source
-     *        the source
-     * @param destination
-     *        the destination
+     * @param source      the source
+     * @param destination the destination
      * @return True if succeeded , False if not
      */
-    public static boolean copy(InputStream source , String destination) {
+    public static boolean copy(InputStream source, String destination) {
         boolean succeess = true;
 
         System.out.println("Copying ->" + source + "\n\tto ->" + destination);
@@ -33,12 +32,6 @@ public class ModHelper {
 
     public static class ModHelperFields {
         public static String CurrentWorldFolder = "";
-        public static Process CurrentServer = null;
         public static Boolean IsClientServer = false;
-        public static Boolean LaunchingLocalServer = false;
-        public static Boolean IsWorldBackupStarted = false;
-        public static Boolean IsZipInProgress = true;
-        public static Boolean IsServerLaunched = true;
-        public static Boolean IsPreparationStarted = false;
     }
 }

@@ -16,21 +16,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.io.File;
 import java.io.IOException;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 @Environment(EnvType.SERVER)
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
 
-    @Shadow public PlayerManager playerManager;
+    @Shadow
+    public PlayerManager playerManager;
 
-    @Shadow public abstract void stop();
+    @Shadow
+    public abstract void stop();
 
-    @Unique private int serverTicks = 0;
+    @Unique
+    private int serverTicks = 0;
 
-    @Unique private int loadingLevel = 0;
+    @Unique
+    private int loadingLevel = 0;
 
-    @Unique private int currentProgress = 0;
-
-    @Inject(method = "loadWorld", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "loadWorld", at = @At("HEAD"))
     private void saveAsServer_loadWorldHead(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
         File clientLockFile = new File("client.lock");
         if (clientLockFile.exists()) {
@@ -56,8 +59,7 @@ public abstract class MinecraftServerMixin {
                     value = "INVOKE",
                     target = "Ljava/util/logging/Logger;info(Ljava/lang/String;)V",
                     ordinal = 1
-            ),
-            cancellable = true
+            )
     )
     private void saveAsServer_currentlyLoadingLevel(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
         File saveAsServerEnd = new File("logging" + File.separator + "loading-level-" + loadingLevel);
@@ -69,7 +71,7 @@ public abstract class MinecraftServerMixin {
         loadingLevel++;
     }
 
-    @Inject(method = "logProgress", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "logProgress", at = @At("RETURN"))
     private void saveAsServer_logProgress(String progressType, int progress, CallbackInfo ci) {
         File saveAsServerEnd = new File("logging" + File.separator + "level-progress-" + progress);
         try {
@@ -79,7 +81,7 @@ public abstract class MinecraftServerMixin {
         }
     }
 
-    @Inject(method = "loadWorld", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "loadWorld", at = @At("RETURN"))
     private void saveAsServer_loadWorldReturn(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
         loadingLevel = 0;
         File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
@@ -90,7 +92,7 @@ public abstract class MinecraftServerMixin {
         }
     }
 
-    @Inject(method = "tick", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "tick", at = @At("RETURN"))
     private void saveAsServer_tick(CallbackInfo ci) {
         serverTicks++;
 
@@ -98,8 +100,8 @@ public abstract class MinecraftServerMixin {
             serverTicks = 0;
 
             if (ModHelper.ModHelperFields.IsClientServer) {
-                if (  (null != playerManager)
-                   && (null != playerManager.players)
+                if ((null != playerManager)
+                        && (null != playerManager.players)
                 ) {
                     if (playerManager.players.isEmpty()) {
                         stop();

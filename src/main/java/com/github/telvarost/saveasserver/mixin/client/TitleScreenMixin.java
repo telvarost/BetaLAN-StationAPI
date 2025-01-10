@@ -1,7 +1,8 @@
 package com.github.telvarost.saveasserver.mixin.client;
 
 import com.github.telvarost.saveasserver.JoinLocalServerScreen;
-import com.github.telvarost.saveasserver.ModHelper;
+import com.github.telvarost.saveasserver.LocalServerManager;
+import com.github.telvarost.saveasserver.ServerStatus;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
@@ -17,7 +18,7 @@ public class TitleScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("HEAD"), cancellable = true)
     public void init(CallbackInfo ci) {
-        if (ModHelper.ModHelperFields.LaunchingLocalServer) {
+        if (LocalServerManager.getInstance().status == ServerStatus.LAUNCHING) {
             this.minecraft.setScreen(new JoinLocalServerScreen(this));
             ci.cancel();
         }
