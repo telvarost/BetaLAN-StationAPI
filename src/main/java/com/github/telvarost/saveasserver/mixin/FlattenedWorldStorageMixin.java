@@ -1,6 +1,6 @@
 package com.github.telvarost.saveasserver.mixin;
 
-import com.github.telvarost.saveasserver.ModHelper;
+import com.github.telvarost.saveasserver.SaveAsServer;
 import net.minecraft.world.storage.AlphaWorldStorageSource;
 import net.minecraft.world.storage.WorldStorage;
 import net.modificationstation.stationapi.impl.world.storage.FlattenedWorldStorage;
@@ -20,6 +20,6 @@ public class FlattenedWorldStorageMixin extends AlphaWorldStorageSource {
 
     @Inject(method = "method_1009", at = @At("HEAD"))
     public void method_1009(String saveName, boolean createPlayerDataDir, CallbackInfoReturnable<WorldStorage> cir) {
-        ModHelper.ModHelperFields.CurrentWorldFolder = saveName;
+        SaveAsServer.CurrentWorldFolder = saveName;
     }
 }

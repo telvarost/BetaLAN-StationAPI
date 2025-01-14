@@ -2,30 +2,39 @@ package com.github.telvarost.saveasserver;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 
+@SuppressWarnings("DanglingJavadoc")
 @Environment(EnvType.CLIENT)
-public class JoinLocalServerScreen extends Screen {
+public class OpenToLanScreen extends Screen {
 
     LocalServerManager manager;
 
-    public JoinLocalServerScreen(Screen parent) {
+    public OpenToLanScreen(Screen parent) {
     }
 
     public void init() {
         this.buttons.clear();
         manager = LocalServerManager.getInstance();
-        if (manager.status == ServerStatus.NOT_STARTED) {
+
+        if (manager.status == ServerStatus.NOT_STARTED || manager.status == ServerStatus.RUNNING) {
             manager.start();
         }
+
         this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
         this.minecraft.progressRenderer.progressStagePercentage(0);
     }
 
     @Override
     public void tick() {
-        manager.run();
+        //manager.run();
+        this.minecraft.progressRenderer.stage = manager.loadingText;
+
+        if (manager.status == ServerStatus.RUNNING) {
+            this.minecraft.setScreen(new ConnectScreen(this.minecraft, "127.0.0.1", Config.config.SERVER_PORT));
+        }
     }
 
     public void removed() {
@@ -45,7 +54,6 @@ public class JoinLocalServerScreen extends Screen {
     }
 
     public void render(int mouseX, int mouseY, float delta) {
-        this.minecraft.progressRenderer.progressStage(manager.loadingText);
         this.minecraft.progressRenderer.progressStagePercentage(manager.loadingProgress);
     }
 }

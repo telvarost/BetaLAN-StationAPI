@@ -1,6 +1,6 @@
 package com.github.telvarost.saveasserver.mixin;
 
-import com.github.telvarost.saveasserver.ModHelper;
+import com.github.telvarost.saveasserver.SaveAsServer;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.api.EnvType;
@@ -44,7 +44,7 @@ public class WorldPropertiesMixin {
         try {
             /** - Get server files and check for server lock */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-            File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+            File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
             File serverLock = new File(worldDir, "server.lock");
             if (!serverLock.exists()) {
                 return;

@@ -31,3 +31,4 @@ bin/
 # fabric
 
 run/
+!run/mods/saveasserver-debug-buddy.jar

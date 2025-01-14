@@ -1,13 +1,39 @@
 package com.github.telvarost.saveasserver;
 
 public enum ServerStatus {
-    NOT_STARTED, // Server has not been started
-    INITIALIZING, // Server has been requested to start
-    BACKUP, // Server is backing up files
+    /**
+     * Server has not been started yet
+     */
+    NOT_STARTED,
+    
+    /**
+     * Determines whether a backup will be done or no
+     */
+    INITIALIZING,
+
+    /**
+     * Backing up the world
+     */
+    BACKUP,
+
+    /**
+     * Launching the server process
+     */
     LAUNCHING,
-    PREPARING,
+
+    /**
+     * Waiting for the server to load
+     */
     LOADING,
+
+    /**
+     * Loading is finished, close unnecessary streams and join the server
+     */
     STARTED,
+
+    /**
+     * The server is running, keep processing messages from it and check if its alive
+     */
     RUNNING
 
 

@@ -1,41 +1,40 @@
 package com.github.telvarost.saveasserver;
 
+import com.github.telvarost.saveasserver.util.FileUtil;
+import com.github.telvarost.saveasserver.util.MathUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.ConnectScreen;
-import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.client.gui.screen.DisconnectedScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.stat.Stats;
-import net.minecraft.world.World;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-@SuppressWarnings({"deprecation", "DanglingJavadoc", "ResultOfMethodCallIgnored", "IndexOfReplaceableByContains", "ConditionCoveredByFurtherCondition", "CallToPrintStackTrace"})
+@SuppressWarnings({"deprecation", "DanglingJavadoc", "ResultOfMethodCallIgnored"})
 public class LocalServerManager {
     private static LocalServerManager INSTANCE;
 
+    // The thread of the server manager
+    public Thread managerThread;
+
     // The status of the server
-    public ServerStatus status;
+    public volatile ServerStatus status;
     public Process serverProcess;
-    public BufferedReader processOutput;
+    public BufferedReader serverOutput;
+    private long loadingStartTime = 0;
 
     // Loading Bar
-    String loadingText = "";
-    int loadingProgress = 0;
+    public volatile String loadingText = "";
+    public volatile int loadingProgress = 0;
 
-    private List<String> fileList;
+    // Minecraft.. duh
     public Minecraft minecraft;
 
     public LocalServerManager() {
@@ -43,6 +42,9 @@ public class LocalServerManager {
         status = ServerStatus.NOT_STARTED;
     }
 
+    /**
+     * @return A Singleton instance of the LocalServerManager
+     */
     public static LocalServerManager getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new LocalServerManager();
@@ -51,28 +53,51 @@ public class LocalServerManager {
         return INSTANCE;
     }
 
+    /**
+     * Sets the server status to INITIALIZING and starts the manager thread
+     */
     public void start() {
-        status = ServerStatus.INITIALIZING;
-    }
-
-    public void stop() {
-        status = ServerStatus.NOT_STARTED;
-    }
-
-    private int parseInt(String s, int defaultValue) {
-        try {
-            return Integer.parseInt(s.trim());
-        } catch (Exception var4) {
-            return defaultValue;
+        // Check for the presence of another process
+        if(serverProcess != null && serverProcess.isAlive()) {
+            SaveAsServer.LOGGER.warn("Another server process is running");
+            serverProcess.destroy();
         }
-    }
 
+        // Check the manager status
+        if(status != ServerStatus.NOT_STARTED) {
+            SaveAsServer.LOGGER.warn("The server manager process status is not NOT_STARTED, this may indicate an improper shutdown");
+        }
+        
+        // Check if the server manager thread isnt running when it shouldnt
+        if(managerThread != null && managerThread.isAlive()) {
+            SaveAsServer.LOGGER.warn("The server manager thread is running when it should not");
+        }
+        
+        // Set the correct status
+        status = ServerStatus.INITIALIZING;
+
+        // Create the thread that will manage the server
+        managerThread = new Thread(new Runnable() {
+            final LocalServerManager manager = LocalServerManager.getInstance();
+
+            @Override
+            public void run() {
+                while (status != ServerStatus.NOT_STARTED) {
+                    manager.run();
+                }
+            }
+        });
+
+        // Start the manager thread
+        managerThread.start();
+    }
+    
+    /**
+     * Handles the server in its current stage
+     */
     public void run() {
         switch (status) {
-            case NOT_STARTED -> {
-
-            }
-
+            // The first stage, this will determine if a backup will be done
             case INITIALIZING -> {
                 if (Config.config.BACKUP_WORLD_ON_LAN_SERVER_LAUNCH) {
                     status = ServerStatus.BACKUP;
@@ -81,190 +106,154 @@ public class LocalServerManager {
                 }
             }
 
+            // Backs the server up and launches it
             case BACKUP -> {
-                /** - Prepare and zip world files */
-                fileList = new ArrayList<String>();
+                ArrayList<String> fileList = new ArrayList<>();
                 File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-                File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
-                generateFileList(worldDir);
-                zipIt("saves" + File.separator + "_" + ModHelper.ModHelperFields.CurrentWorldFolder + ".zip");
+                File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+                FileUtil.generateFileList(worldDir, fileList);
+                FileUtil.zipFiles("saves" + File.separator + "_" + SaveAsServer.CurrentWorldFolder + ".zip", fileList);
 
-                System.out.println("World backup successfully created!");
-                /** - Set flag letting server know that it can now launch */
+                SaveAsServer.LOGGER.info("World Backup Successfull");
                 status = ServerStatus.LAUNCHING;
             }
 
+            // Starts launching the server
             case LAUNCHING -> {
                 /** - Create server lock */
                 File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-                File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+                File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
                 File serverLock = new File(worldDir, "server.lock");
+                
                 if (!serverLock.exists()) {
                     try {
                         serverLock.createNewFile();
                     } catch (IOException e) {
-                        System.out.println("Failed to create server lock file! Client player may be de-synced after launch!");
+                        SaveAsServer.LOGGER.error("Could not create server lock file", e);
                     }
                 }
 
-                /** - Prepare logging folder */
-                File[] files = new File("logging").listFiles();
-                if (files != null) {
-                    for (File currentFile : files) {
-                        currentFile.delete();
-                    }
-                }
-
-                /** - Update loading bar */
+                /** - Update loading bar information */
                 loadingText = "Preparing world";
                 loadingProgress = 0;
 
                 /** - Launch server */
                 String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
-                ProcessBuilder pb = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
-                pb.directory(Minecraft.getRunDirectory());
+                ProcessBuilder processBuilder = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
+                processBuilder.directory(Minecraft.getRunDirectory());
 
-                //pb.inheritIO();
-                //pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-                //pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-                //pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-                RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-                String javaExecutablePath = runtimeMXBean.getInputArguments().toString();
-                String[] inputArgs = javaExecutablePath.split(" ");
-                String javaPath = inputArgs[0];
-                System.out.println("Current Java Executable Path: " + javaPath);
-                System.out.println("AA");
-                
                 try {
-                    serverProcess = pb.start();
+                    // Starts the server process
+                    serverProcess = processBuilder.start();
 
-                    processOutput = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
-                    serverProcess.getErrorStream().close();
+                    // Obtains the input stream and closes the streams we dont need
+                    serverOutput = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
                     serverProcess.getOutputStream().close();
+                    serverProcess.getErrorStream().close();
+                    
+                } catch (IOException ex) {
+                    // If the server launch fails, display a message to the user and destroys the process
+                    this.minecraft.setScreen(new DisconnectedScreen("Error launching server", ex.getMessage()));
+                    SaveAsServer.LOGGER.error("Failed to start server!", ex);
+                    serverProcess.destroy();
+                }
 
-                    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                        public void run() {
-                            if (serverProcess != null) {
-                                Minecraft client = (Minecraft) FabricLoader.getInstance().getGameInstance();
-                                if (client != null) {
-                                    client.setScreen(new TitleScreen());
+                // Store the time at which the server load started
+                loadingStartTime = System.currentTimeMillis();
+                status = ServerStatus.LOADING;
+            }
+
+            // Reads the messages from the server and either waits for it to load or for the configured timeout
+            case LOADING -> {
+                // Timeout
+                if (System.currentTimeMillis() - loadingStartTime > 180000) {
+                    status = ServerStatus.STARTED;
+                    SaveAsServer.LOGGER.warn("Server didn't start in the specfied timeout, trying to join regardless");
+                }
+
+                // Read the messages from the server
+                try {
+                    if (serverOutput.ready()) {
+                        String line = serverOutput.readLine();
+
+                        if (line.charAt(0) == '$') {
+                            System.out.println("Processing Line : " + line);
+
+                            String[] splitLine = line.split(";");
+                            if (splitLine.length >= 5) {
+                                loadingText = splitLine[4];
+                                loadingProgress = MathUtil.tryParseInt(splitLine[3], 10);
+
+                                if (splitLine[1].equals("info")) {
+                                    if (splitLine[2].equals("done")) {
+                                        status = ServerStatus.STARTED;
+                                    }
+                                } else if (splitLine[1].equals("error")) {
+                                    this.minecraft.setScreen(new DisconnectedScreen("Error launching server", splitLine[3]));
+                                    this.status = ServerStatus.NOT_STARTED;
                                 }
                             }
                         }
-                    }, "ServerCrashMonitor-thread"));
-
-//                    serverProcess.getErrorStream().close();
-//                    serverProcess.getInputStream().close();
-//                    serverProcess.getOutputStream().close();
-                } catch (IOException ex) {
-                    this.minecraft.setScreen(new TitleScreen());
-                    System.out.println("Failed to open client world to LAN: " + ex.toString());
-                }
-                status = ServerStatus.PREPARING;
-            }
-
-            case PREPARING -> {
-
-                try {
-                    if (processOutput.ready()) {
-                        System.out.println("SERVER OUTPUT: " + processOutput.readLine());
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    this.minecraft.setScreen(new DisconnectedScreen("Error launching server", e.getMessage()));
+                    this.status = ServerStatus.NOT_STARTED;
                 }
-
-//                File saveAsServerBegin = new File("logging" + File.separator + "preparing-level");
-//                if (saveAsServerBegin.exists()) {
-//                    saveAsServerBegin.delete();
-//
-//                    System.out.println("Preparing LAN server...");
-//                }
-                //status = ServerStatus.LOADING;
             }
 
-            case LOADING -> {
-                File[] files = new File("logging").listFiles();
-                String searchLevel = "loading-level";
-                String searchProgress = "level-progress";
-                if (files != null) {
-                    for (File currentFile : files) {
-                        String fileName = currentFile.getName();
+            // The server has started, join it and close unnecessary streams
+            case STARTED -> {
+                // Announce status
+                loadingText = "Joining the server";
+                loadingProgress = 100;
+                SaveAsServer.LOGGER.info("Done loading LAN server");
 
-                        if (fileName.toLowerCase().indexOf(searchLevel.toLowerCase()) != -1) {
-                            String levelString = fileName.substring("loading-level-".length());
-                            loadingText = "Preparing start region for level " + levelString;
-                            loadingProgress = 0;
-                            currentFile.delete();
-                        }
+                // Close the streams
+                try {serverProcess.getOutputStream().close();} catch (IOException ignored) {}
+                try {serverProcess.getErrorStream().close();} catch (IOException ignored) {}
+                if (!Config.config.enableServerLogsInConsole) {try {serverProcess.getInputStream().close();} catch (IOException ignored) {}}
+                
+                status = ServerStatus.RUNNING;
+            }
 
-                        if (fileName.toLowerCase().indexOf(searchProgress.toLowerCase()) != -1) {
-                            String progressString = fileName.substring("level-progress-".length());
-                            loadingProgress = parseInt(progressString, loadingProgress);
-                            currentFile.delete();
+            // The server is running
+            case RUNNING -> {
+                try {
+                    // Sleep for 500ms
+                    Thread.sleep(500);
+
+                    // Check if the process is still running
+                    if (!serverProcess.isAlive()) {
+                        SaveAsServer.LOGGER.info("Server Process Stopped");
+                        status = ServerStatus.NOT_STARTED;
+                        break;
+                    }
+
+                    // Process log output
+                    if (Config.config.enableServerLogsInConsole) {
+                        while (serverOutput.ready()) {
+                            System.out.println(serverOutput.readLine());
                         }
                     }
-                }
-                loadedTime = System.currentTimeMillis();
-                status = ServerStatus.STARTED;
-            }
 
-            case STARTED -> {
-                //File saveAsServerEnd = new File("logging" + File.separator + "done-loading");
-                //if (saveAsServerEnd.exists()) {
-                loadingProgress = 100;
-                //saveAsServerEnd.delete();
-
-                /** - Have the client join the local server */
-                loadingText = "Waiting for server to load";
-
-                if (System.currentTimeMillis() - loadedTime > 10000) {
-                    System.out.println("Done loading LAN server!");
-                    joinLocalServer();
-                    status = ServerStatus.RUNNING;
-                }
-                //}
-            }
-
-            case RUNNING -> {
-
-            }
-        }
-    }
-
-    long loadedTime = 0;
-
-    private void joinLocalServer() {
-        String serverAddress = "127.0.0.1:" + Config.config.SERVER_PORT;
-        this.minecraft.options.lastServer = serverAddress.replaceAll(":", "_");
-        this.minecraft.options.save();
-        String[] var3 = serverAddress.split(":");
-        if (serverAddress.startsWith("[")) {
-            int var4 = serverAddress.indexOf("]");
-            if (var4 > 0) {
-                String var5 = serverAddress.substring(1, var4);
-                String var6 = serverAddress.substring(var4 + 1).trim();
-                if (!var6.isEmpty() && var6.startsWith(":")) {
-                    var6 = var6.substring(1);
-                    var3 = new String[]{var5, var6};
-                } else {
-                    var3 = new String[]{var5};
+                } catch (InterruptedException e) {
+                    SaveAsServer.LOGGER.error("Interrupted", e);
+                } catch (IOException e) {
+                    SaveAsServer.LOGGER.error("Error reading server console output", e);
                 }
             }
-        }
 
-        if (var3.length > 2) {
-            var3 = new String[]{serverAddress};
+            // NOT_STARTED
+            default -> {
+            }
         }
-
-        this.minecraft.setScreen(new ConnectScreen(this.minecraft, var3[0], var3.length > 1 ? this.parseInt(var3[1], 25565) : 25565));
     }
 
     public void prepareAndLaunchServer(PlayerEntity player) {
         try {
             /** - Get server files */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-            File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
+            File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
             File playerDataDir = new File(worldDir, "players");
             if (!playerDataDir.exists()) {
                 playerDataDir.mkdirs();
@@ -306,7 +295,7 @@ public class LocalServerManager {
             /** - Extract server jar file */
             File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
             if (!storedServerJar.exists()) {
-                ModHelper.copy(getClass().getResourceAsStream("/assets/saveasserver/local-babric-server.0.16.9.jar")
+                FileUtil.copy(getClass().getResourceAsStream("/assets/saveasserver/local-babric-server.0.16.9.jar")
                         , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
             }
 
@@ -316,22 +305,16 @@ public class LocalServerManager {
                 clientLockFile.createNewFile();
             }
 
-            /** - Prepare folder for server logging info to client */
-            File saveAsServerFolder = new File(Minecraft.getRunDirectory(), "logging");
-            if (!saveAsServerFolder.exists()) {
-                saveAsServerFolder.mkdirs();
-            }
-
             /** - Close client world */
             this.minecraft.stats.increment(Stats.LEAVE_GAME, 1);
             if (this.minecraft.isWorldRemote()) {
                 this.minecraft.world.disconnect();
             }
-            this.minecraft.setWorld((World) null);
-            this.minecraft.setScreen(new JoinLocalServerScreen(null));
-            //this.minecraft.setScreen(new TitleScreen());
+
+            this.minecraft.setWorld(null);
+            this.minecraft.setScreen(new OpenToLanScreen(null));
         } catch (Exception ex) {
-            System.out.println("Failed to open client world to LAN: " + ex.toString());
+            SaveAsServer.LOGGER.error("Failed to open client world to LAN:", ex);
         }
     }
 
@@ -343,8 +326,7 @@ public class LocalServerManager {
             /** - Release file resources */
             writer.close();
         } catch (IOException e) {
-            System.out.println("Failed to create LAN server OP list: ");
-            e.printStackTrace();
+            SaveAsServer.LOGGER.error("Failed to create local server op list file", e);
         }
     }
 
@@ -353,13 +335,12 @@ public class LocalServerManager {
         try {
             Files.copy(serverOpListFile.toPath(), tempServerOpListFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             FileWriter writer = new FileWriter(tempServerOpListFile);
-            Reader reader = new FileReader(tempServerOpListFile);
-            BufferedReader br = new BufferedReader(reader);
+            BufferedReader reader = new BufferedReader(new FileReader(tempServerOpListFile));
             boolean isClientPlayerOp = false;
 
             /** - Scan file for values to change */
-            while (br.ready()) {
-                String currentLine = br.readLine();
+            while (reader.ready()) {
+                String currentLine = reader.readLine();
 
                 /** - Check if client player is OP */
                 if (currentLine.contains(this.minecraft.session.username)) {
@@ -374,14 +355,12 @@ public class LocalServerManager {
 
             /** - Release file resources */
             writer.close();
-            br.close();
             reader.close();
 
             /** - Replace current OP list file with newly created OP list file */
             tempServerOpListFile.renameTo(serverOpListFile);
         } catch (IOException e) {
-            System.out.println("Failed to update LAN server properties: ");
-            e.printStackTrace();
+            SaveAsServer.LOGGER.error("Failed to edit local server op list file", e);
         }
 
         /** - Ensure temporary OP list file is deleted if it is no longer needed */
@@ -395,8 +374,8 @@ public class LocalServerManager {
             PrintWriter writer = new PrintWriter(serverPropertiesFile, StandardCharsets.UTF_8);
             writer.println("#Minecraft server properties");
             writer.println("#" + new Date());
-            if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                writer.println("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder);
+            if (null != SaveAsServer.CurrentWorldFolder) {
+                writer.println("level-name=./saves/" + SaveAsServer.CurrentWorldFolder);
             } else {
                 writer.println("#level-name=world");
             }
@@ -421,8 +400,7 @@ public class LocalServerManager {
             /** - Release file resources */
             writer.close();
         } catch (IOException e) {
-            System.out.println("Failed to create LAN server properties: ");
-            e.printStackTrace();
+            SaveAsServer.LOGGER.error("Failed to create local server properties file", e);
         }
     }
 
@@ -440,14 +418,14 @@ public class LocalServerManager {
 
                 /** - Change level to currently selected client world */
                 if (currentLine.contains("level-name")) {
-                    if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
-                        writer.write("level-name=./saves/" + ModHelper.ModHelperFields.CurrentWorldFolder + "\n");
+                    if (null != SaveAsServer.CurrentWorldFolder) {
+                        writer.write("level-name=./saves/" + SaveAsServer.CurrentWorldFolder + "\n");
                     }
                 }
 
                 /** - Change port to port from GCAPI3 config */
                 if (currentLine.contains("server-port")) {
-                    if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                    if (null != SaveAsServer.CurrentWorldFolder) {
                         writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
                     }
                 }
@@ -455,7 +433,7 @@ public class LocalServerManager {
                 /** - Change to offline mode if online-mode is forced false */
                 if (Config.config.FORCE_ONLINEMODE_FALSE) {
                     if (currentLine.contains("online-mode")) {
-                        if (null != ModHelper.ModHelperFields.CurrentWorldFolder) {
+                        if (null != SaveAsServer.CurrentWorldFolder) {
                             writer.write("online-mode=false\n");
                         }
                     }
@@ -470,80 +448,12 @@ public class LocalServerManager {
             /** - Replace current properties file with newly created properties file */
             tempServerPropertiesFile.renameTo(serverPropertiesFile);
         } catch (IOException e) {
-            System.out.println("Failed to update LAN server properties: ");
-            e.printStackTrace();
+            SaveAsServer.LOGGER.error("Failed to edit local server properties file", e);
         }
 
         /** - Ensure temporary properties file is deleted if it is no longer needed */
         if (serverPropertiesFile.exists() && tempServerPropertiesFile.exists()) {
             tempServerPropertiesFile.delete();
         }
-    }
-
-    public void zipIt(String zipFile) {
-        File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-        File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
-        byte[] buffer = new byte[1024];
-        FileOutputStream fos = null;
-        ZipOutputStream zos = null;
-        try {
-            fos = new FileOutputStream(zipFile);
-            zos = new ZipOutputStream(fos);
-
-            System.out.println("Output World to Zip : " + zipFile);
-            FileInputStream in = null;
-
-            int fileListLength = (null != fileList) ? fileList.size() : 0;
-            for (int fileIndex = 0; fileIndex < fileListLength; fileIndex++) {
-                System.out.println("Zipping : " + fileList.get(fileIndex));
-                ZipEntry ze = new ZipEntry(fileList.get(fileIndex));
-                zos.putNextEntry(ze);
-                try {
-                    in = new FileInputStream(worldDir.getAbsolutePath().replaceAll("\\\\", "/") + File.separator + fileList.get(fileIndex));
-                    int len;
-                    while ((len = in.read(buffer)) > 0) {
-                        zos.write(buffer, 0, len);
-                    }
-                } finally {
-                    if (in != null) {
-                        in.close();
-                    }
-                }
-            }
-
-            zos.closeEntry();
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if (zos != null) {
-                    zos.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void generateFileList(File node) {
-        // add file only
-        if (node.isFile()) {
-            fileList.add(generateZipEntry(node.getAbsolutePath().replaceAll("\\\\", "/")));
-        }
-
-        if (node.isDirectory()) {
-            String[] subNote = node.list();
-            assert subNote != null;
-            for (String filename : subNote) {
-                generateFileList(new File(node, filename));
-            }
-        }
-    }
-
-    private String generateZipEntry(String file) {
-        File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-        File worldDir = new File(savesDir, ModHelper.ModHelperFields.CurrentWorldFolder);
-        return file.substring(worldDir.getAbsolutePath().replaceAll("\\\\", "/").length() + 1, file.length());
     }
 }

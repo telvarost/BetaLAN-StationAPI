@@ -18,8 +18,10 @@
   "icon": "assets/saveasserver/icon.png",
 
   "environment": "*",
+  "accessWidener": "saveasserver.accesswidener",
   "entrypoints": {
     "stationapi:event_bus": [
+      "com.github.telvarost.saveasserver.SaveAsServer"
     ],
     "stationapi:event_bus_client": [
     ],
@@ -32,7 +34,7 @@
   "mixins": [
     "saveasserver.mixins.json"
   ],
-
+  
   "depends": {
     "minecraft": "1.0.0-beta.7.3",
     "stationapi": "*"
