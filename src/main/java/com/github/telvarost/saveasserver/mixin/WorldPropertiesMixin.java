@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
@@ -21,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 import java.io.FileInputStream;
 
+@SuppressWarnings({"DanglingJavadoc", "ResultOfMethodCallIgnored"})
 @Mixin(WorldProperties.class)
 public class WorldPropertiesMixin {
 
@@ -49,16 +49,15 @@ public class WorldPropertiesMixin {
             if (!serverLock.exists()) {
                 return;
             }
+
             File playerDataDir = new File(worldDir, "players");
             if (!playerDataDir.exists()) {
                 playerDataDir.mkdirs();
             }
 
             /** - Check if joining a client or server world */
-            Minecraft minecraft = (Minecraft) FabricLoader.getInstance().getGameInstance();
-            if ((null != minecraft.world)
-                    && (false == minecraft.world.isRemote)
-            ) {
+            Minecraft minecraft = Minecraft.INSTANCE;
+            if (minecraft.world != null && !minecraft.world.isRemote) {
                 /** - If world is client, retrieve client player from server player data */
                 File playerFile = new File(playerDataDir, minecraft.session.username + ".dat");
                 if (playerFile.exists()) {
@@ -67,8 +66,7 @@ public class WorldPropertiesMixin {
 
                     /** - Fix player position */
                     NbtList posNbt = readPlayerNbt.getList("Pos");
-                    double playerYLevel = ((NbtDouble) posNbt.get(1)).value + 2.0;
-                    ((NbtDouble) posNbt.get(1)).value = playerYLevel;
+                    ((NbtDouble) posNbt.get(1)).value = ((NbtDouble) posNbt.get(1)).value + 2.0;
 
                     this.playerNbt = readPlayerNbt;
                 }
@@ -77,7 +75,7 @@ public class WorldPropertiesMixin {
                 serverLock.delete();
             }
         } catch (Exception ex) {
-            System.out.println("Failed to retrieve player data: " + ex.toString());
+            SaveAsServer.LOGGER.error("Failed to retrieve player data", ex);
         }
     }
 }

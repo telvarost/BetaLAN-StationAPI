@@ -58,21 +58,21 @@ public class LocalServerManager {
      */
     public void start() {
         // Check for the presence of another process
-        if(serverProcess != null && serverProcess.isAlive()) {
+        if (serverProcess != null && serverProcess.isAlive()) {
             SaveAsServer.LOGGER.warn("Another server process is running");
             serverProcess.destroy();
         }
 
         // Check the manager status
-        if(status != ServerStatus.NOT_STARTED) {
+        if (status != ServerStatus.NOT_STARTED) {
             SaveAsServer.LOGGER.warn("The server manager process status is not NOT_STARTED, this may indicate an improper shutdown");
         }
-        
+
         // Check if the server manager thread isnt running when it shouldnt
-        if(managerThread != null && managerThread.isAlive()) {
+        if (managerThread != null && managerThread.isAlive()) {
             SaveAsServer.LOGGER.warn("The server manager thread is running when it should not");
         }
-        
+
         // Set the correct status
         status = ServerStatus.INITIALIZING;
 
@@ -91,7 +91,7 @@ public class LocalServerManager {
         // Start the manager thread
         managerThread.start();
     }
-    
+
     /**
      * Handles the server in its current stage
      */
@@ -124,7 +124,7 @@ public class LocalServerManager {
                 File savesDir = new File(Minecraft.getRunDirectory(), "saves");
                 File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
                 File serverLock = new File(worldDir, "server.lock");
-                
+
                 if (!serverLock.exists()) {
                     try {
                         serverLock.createNewFile();
@@ -150,7 +150,7 @@ public class LocalServerManager {
                     serverOutput = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
                     serverProcess.getOutputStream().close();
                     serverProcess.getErrorStream().close();
-                    
+
                 } catch (IOException ex) {
                     // If the server launch fails, display a message to the user and destroys the process
                     this.minecraft.setScreen(new DisconnectedScreen("Error launching server", ex.getMessage()));
@@ -209,10 +209,14 @@ public class LocalServerManager {
                 SaveAsServer.LOGGER.info("Done loading LAN server");
 
                 // Close the streams
-                try {serverProcess.getOutputStream().close();} catch (IOException ignored) {}
-                try {serverProcess.getErrorStream().close();} catch (IOException ignored) {}
-                if (!Config.config.enableServerLogsInConsole) {try {serverProcess.getInputStream().close();} catch (IOException ignored) {}}
-                
+                if (!Config.config.enableServerLogsInConsole) {
+                    try {
+                        serverProcess.getInputStream().close();
+                    } catch (IOException ignored) {
+
+                    }
+                }
+
                 status = ServerStatus.RUNNING;
             }
 

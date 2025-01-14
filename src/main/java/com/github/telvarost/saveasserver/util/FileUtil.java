@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@SuppressWarnings("UnusedReturnValue")
 public class FileUtil {
     /**
      * Copy a file from source to destination.

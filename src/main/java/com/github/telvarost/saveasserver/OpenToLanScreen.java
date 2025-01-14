@@ -19,19 +19,22 @@ public class OpenToLanScreen extends Screen {
         this.buttons.clear();
         manager = LocalServerManager.getInstance();
 
+        // This check is here because resizing the window will reinit the screen causing this to run again
         if (manager.status == ServerStatus.NOT_STARTED || manager.status == ServerStatus.RUNNING) {
             manager.start();
         }
 
+        // Initial progress message
         this.minecraft.progressRenderer.progressStart("Opening World to LAN...");
         this.minecraft.progressRenderer.progressStagePercentage(0);
     }
 
     @Override
     public void tick() {
-        //manager.run();
         this.minecraft.progressRenderer.stage = manager.loadingText;
 
+        // This is here beacuse the server manager is running on another thread and if it was to call it
+        // the game would crash because it needs the OpenGL context
         if (manager.status == ServerStatus.RUNNING) {
             this.minecraft.setScreen(new ConnectScreen(this.minecraft, "127.0.0.1", Config.config.SERVER_PORT));
         }
