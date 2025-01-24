@@ -1,7 +1,7 @@
-package com.github.telvarost.saveasserver;
+package com.github.telvarost.betalan;
 
-import com.github.telvarost.saveasserver.util.FileUtil;
-import com.github.telvarost.saveasserver.util.MathUtil;
+import com.github.telvarost.betalan.util.FileUtil;
+import com.github.telvarost.betalan.util.MathUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.DisconnectedScreen;
@@ -59,18 +59,18 @@ public class LocalServerManager {
     public void start() {
         // Check for the presence of another process
         if (serverProcess != null && serverProcess.isAlive()) {
-            SaveAsServer.LOGGER.warn("Another server process is running");
+            BetaLAN.LOGGER.warn("Another server process is running");
             serverProcess.destroy();
         }
 
         // Check the manager status
         if (status != ServerStatus.NOT_STARTED) {
-            SaveAsServer.LOGGER.warn("The server manager process status is not NOT_STARTED, this may indicate an improper shutdown");
+            BetaLAN.LOGGER.warn("The server manager process status is not NOT_STARTED, this may indicate an improper shutdown");
         }
 
         // Check if the server manager thread isnt running when it shouldnt
         if (managerThread != null && managerThread.isAlive()) {
-            SaveAsServer.LOGGER.warn("The server manager thread is running when it should not");
+            BetaLAN.LOGGER.warn("The server manager thread is running when it should not");
         }
 
         // Set the correct status
@@ -110,11 +110,11 @@ public class LocalServerManager {
             case BACKUP -> {
                 ArrayList<String> fileList = new ArrayList<>();
                 File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-                File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+                File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
                 FileUtil.generateFileList(worldDir, fileList);
-                FileUtil.zipFiles("saves" + File.separator + "_" + SaveAsServer.CurrentWorldFolder + ".zip", fileList);
+                FileUtil.zipFiles("saves" + File.separator + "_" + BetaLAN.CurrentWorldFolder + ".zip", fileList);
 
-                SaveAsServer.LOGGER.info("World Backup Successfull");
+                BetaLAN.LOGGER.info("World Backup Successfull");
                 status = ServerStatus.LAUNCHING;
             }
 
@@ -122,14 +122,14 @@ public class LocalServerManager {
             case LAUNCHING -> {
                 /** - Create server lock */
                 File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-                File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+                File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
                 File serverLock = new File(worldDir, "server.lock");
 
                 if (!serverLock.exists()) {
                     try {
                         serverLock.createNewFile();
                     } catch (IOException e) {
-                        SaveAsServer.LOGGER.error("Could not create server lock file", e);
+                        BetaLAN.LOGGER.error("Could not create server lock file", e);
                     }
                 }
 
@@ -154,7 +154,7 @@ public class LocalServerManager {
                 } catch (IOException ex) {
                     // If the server launch fails, display a message to the user and destroys the process
                     this.minecraft.setScreen(new DisconnectedScreen("Error launching server", ex.getMessage()));
-                    SaveAsServer.LOGGER.error("Failed to start server!", ex);
+                    BetaLAN.LOGGER.error("Failed to start server!", ex);
                     serverProcess.destroy();
                 }
 
@@ -168,7 +168,7 @@ public class LocalServerManager {
                 // Timeout
                 if (System.currentTimeMillis() - loadingStartTime > 180000) {
                     status = ServerStatus.STARTED;
-                    SaveAsServer.LOGGER.warn("Server didn't start in the specfied timeout, trying to join regardless");
+                    BetaLAN.LOGGER.warn("Server didn't start in the specfied timeout, trying to join regardless");
                 }
 
                 // Read the messages from the server
@@ -206,7 +206,7 @@ public class LocalServerManager {
                 // Announce status
                 loadingText = "Joining the server";
                 loadingProgress = 100;
-                SaveAsServer.LOGGER.info("Done loading LAN server");
+                BetaLAN.LOGGER.info("Done loading LAN server");
 
                 // Close the streams
                 if (!Config.config.enableServerLogsInConsole) {
@@ -228,7 +228,7 @@ public class LocalServerManager {
 
                     // Check if the process is still running
                     if (!serverProcess.isAlive()) {
-                        SaveAsServer.LOGGER.info("Server Process Stopped");
+                        BetaLAN.LOGGER.info("Server Process Stopped");
                         status = ServerStatus.NOT_STARTED;
                         break;
                     }
@@ -241,9 +241,9 @@ public class LocalServerManager {
                     }
 
                 } catch (InterruptedException e) {
-                    SaveAsServer.LOGGER.error("Interrupted", e);
+                    BetaLAN.LOGGER.error("Interrupted", e);
                 } catch (IOException e) {
-                    SaveAsServer.LOGGER.error("Error reading server console output", e);
+                    BetaLAN.LOGGER.error("Error reading server console output", e);
                 }
             }
 
@@ -257,7 +257,7 @@ public class LocalServerManager {
         try {
             /** - Get server files */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-            File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+            File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
             File playerDataDir = new File(worldDir, "players");
             if (!playerDataDir.exists()) {
                 playerDataDir.mkdirs();
@@ -299,7 +299,7 @@ public class LocalServerManager {
             /** - Extract server jar file */
             File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
             if (!storedServerJar.exists()) {
-                FileUtil.copy(getClass().getResourceAsStream("/assets/saveasserver/local-babric-server.0.16.9.jar")
+                FileUtil.copy(getClass().getResourceAsStream("/assets/betalan/local-babric-server.0.16.9.jar")
                         , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
             }
 
@@ -318,7 +318,7 @@ public class LocalServerManager {
             this.minecraft.setWorld(null);
             this.minecraft.setScreen(new OpenToLanScreen(null));
         } catch (Exception ex) {
-            SaveAsServer.LOGGER.error("Failed to open client world to LAN:", ex);
+            BetaLAN.LOGGER.error("Failed to open client world to LAN:", ex);
         }
     }
 
@@ -330,7 +330,7 @@ public class LocalServerManager {
             /** - Release file resources */
             writer.close();
         } catch (IOException e) {
-            SaveAsServer.LOGGER.error("Failed to create local server op list file", e);
+            BetaLAN.LOGGER.error("Failed to create local server op list file", e);
         }
     }
 
@@ -364,7 +364,7 @@ public class LocalServerManager {
             /** - Replace current OP list file with newly created OP list file */
             tempServerOpListFile.renameTo(serverOpListFile);
         } catch (IOException e) {
-            SaveAsServer.LOGGER.error("Failed to edit local server op list file", e);
+            BetaLAN.LOGGER.error("Failed to edit local server op list file", e);
         }
 
         /** - Ensure temporary OP list file is deleted if it is no longer needed */
@@ -378,8 +378,8 @@ public class LocalServerManager {
             PrintWriter writer = new PrintWriter(serverPropertiesFile, StandardCharsets.UTF_8);
             writer.println("#Minecraft server properties");
             writer.println("#" + new Date());
-            if (null != SaveAsServer.CurrentWorldFolder) {
-                writer.println("level-name=./saves/" + SaveAsServer.CurrentWorldFolder);
+            if (null != BetaLAN.CurrentWorldFolder) {
+                writer.println("level-name=./saves/" + BetaLAN.CurrentWorldFolder);
             } else {
                 writer.println("#level-name=world");
             }
@@ -404,7 +404,7 @@ public class LocalServerManager {
             /** - Release file resources */
             writer.close();
         } catch (IOException e) {
-            SaveAsServer.LOGGER.error("Failed to create local server properties file", e);
+            BetaLAN.LOGGER.error("Failed to create local server properties file", e);
         }
     }
 
@@ -422,14 +422,14 @@ public class LocalServerManager {
 
                 /** - Change level to currently selected client world */
                 if (currentLine.contains("level-name")) {
-                    if (null != SaveAsServer.CurrentWorldFolder) {
-                        writer.write("level-name=./saves/" + SaveAsServer.CurrentWorldFolder + "\n");
+                    if (null != BetaLAN.CurrentWorldFolder) {
+                        writer.write("level-name=./saves/" + BetaLAN.CurrentWorldFolder + "\n");
                     }
                 }
 
                 /** - Change port to port from GCAPI3 config */
                 if (currentLine.contains("server-port")) {
-                    if (null != SaveAsServer.CurrentWorldFolder) {
+                    if (null != BetaLAN.CurrentWorldFolder) {
                         writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
                     }
                 }
@@ -437,7 +437,7 @@ public class LocalServerManager {
                 /** - Change to offline mode if online-mode is forced false */
                 if (Config.config.FORCE_ONLINEMODE_FALSE) {
                     if (currentLine.contains("online-mode")) {
-                        if (null != SaveAsServer.CurrentWorldFolder) {
+                        if (null != BetaLAN.CurrentWorldFolder) {
                             writer.write("online-mode=false\n");
                         }
                     }
@@ -452,7 +452,7 @@ public class LocalServerManager {
             /** - Replace current properties file with newly created properties file */
             tempServerPropertiesFile.renameTo(serverPropertiesFile);
         } catch (IOException e) {
-            SaveAsServer.LOGGER.error("Failed to edit local server properties file", e);
+            BetaLAN.LOGGER.error("Failed to edit local server properties file", e);
         }
 
         /** - Ensure temporary properties file is deleted if it is no longer needed */

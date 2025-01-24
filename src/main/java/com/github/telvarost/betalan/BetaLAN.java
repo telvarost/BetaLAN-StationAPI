@@ -1,10 +1,10 @@
-package com.github.telvarost.saveasserver;
+package com.github.telvarost.betalan;
 
 import net.modificationstation.stationapi.api.mod.entrypoint.Entrypoint;
 import net.modificationstation.stationapi.api.util.Null;
 import org.apache.logging.log4j.Logger;
 
-public class SaveAsServer {
+public class BetaLAN {
     @Entrypoint.Logger
     public static final Logger LOGGER = Null.get();
     

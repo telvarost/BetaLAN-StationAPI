@@ -1,4 +1,4 @@
-package com.github.telvarost.saveasserver;
+package com.github.telvarost.betalan;
 
 public enum ServerStatus {
     /**

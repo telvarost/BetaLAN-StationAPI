@@ -1,6 +1,6 @@
-package com.github.telvarost.saveasserver.mixin;
+package com.github.telvarost.betalan.mixin;
 
-import com.github.telvarost.saveasserver.SaveAsServer;
+import com.github.telvarost.betalan.BetaLAN;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.api.EnvType;
@@ -44,7 +44,7 @@ public class WorldPropertiesMixin {
         try {
             /** - Get server files and check for server lock */
             File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-            File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+            File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
             File serverLock = new File(worldDir, "server.lock");
             if (!serverLock.exists()) {
                 return;
@@ -75,7 +75,7 @@ public class WorldPropertiesMixin {
                 serverLock.delete();
             }
         } catch (Exception ex) {
-            SaveAsServer.LOGGER.error("Failed to retrieve player data", ex);
+            BetaLAN.LOGGER.error("Failed to retrieve player data", ex);
         }
     }
 }

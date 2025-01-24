@@ -1,6 +1,6 @@
-package com.github.telvarost.saveasserver.mixin.server;
+package com.github.telvarost.betalan.mixin.server;
 
-import com.github.telvarost.saveasserver.SaveAsServer;
+import com.github.telvarost.betalan.BetaLAN;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -37,10 +37,10 @@ public abstract class MinecraftServerMixin {
     private int serverTicks = 0;
 
     @Inject(method = "loadWorld", at = @At("HEAD"))
-    private void saveAsServer_loadWorldHead(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
+    private void betaLan_loadWorldHead(WorldStorageSource storageSource, String worldDir, long seed, CallbackInfo ci) {
         File clientLockFile = new File("client.lock");
         if (clientLockFile.exists()) {
-            SaveAsServer.isLanServer = true;
+            BetaLAN.isLanServer = true;
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class MinecraftServerMixin {
 
 
     @Inject(method = "tick", at = @At("RETURN"))
-    private void saveAsServer_tick(CallbackInfo ci) {
+    private void betaLan_tick(CallbackInfo ci) {
         serverTicks++;
 
         if (serverTicks > 100) {

@@ -1,6 +1,6 @@
-package com.github.telvarost.saveasserver.util;
+package com.github.telvarost.betalan.util;
 
-import com.github.telvarost.saveasserver.SaveAsServer;
+import com.github.telvarost.betalan.BetaLAN;
 import net.minecraft.client.Minecraft;
 
 import java.io.*;
@@ -21,12 +21,12 @@ public class FileUtil {
      * @return True if succeeded , False if not
      */
     public static boolean copy(InputStream source, String destination) {
-        SaveAsServer.LOGGER.info("Copying " + source + " to " + destination);
+        BetaLAN.LOGGER.info("Copying " + source + " to " + destination);
 
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            SaveAsServer.LOGGER.error("Failed to copy a file", ex);
+            BetaLAN.LOGGER.error("Failed to copy a file", ex);
             return false;
         }
 
@@ -41,7 +41,7 @@ public class FileUtil {
      */
     public static void zipFiles(String zipFile, ArrayList<String> fileList) {
         File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-        File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+        File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
         byte[] buffer = new byte[1024];
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
@@ -49,12 +49,12 @@ public class FileUtil {
             fos = new FileOutputStream(zipFile);
             zos = new ZipOutputStream(fos);
             
-            SaveAsServer.LOGGER.info("Zipping the world into " + zipFile);
+            BetaLAN.LOGGER.info("Zipping the world into " + zipFile);
             FileInputStream in = null;
 
             int fileListLength = (null != fileList) ? fileList.size() : 0;
             for (int fileIndex = 0; fileIndex < fileListLength; fileIndex++) {
-                SaveAsServer.LOGGER.info("Zipping file " + fileList.get(fileIndex));
+                BetaLAN.LOGGER.info("Zipping file " + fileList.get(fileIndex));
                 ZipEntry ze = new ZipEntry(fileList.get(fileIndex));
                 zos.putNextEntry(ze);
                 try {
@@ -73,14 +73,14 @@ public class FileUtil {
             zos.closeEntry();
 
         } catch (IOException ex) {
-            SaveAsServer.LOGGER.error("Error when zipping " + zipFile, ex);
+            BetaLAN.LOGGER.error("Error when zipping " + zipFile, ex);
         } finally {
             try {
                 if (zos != null) {
                     zos.close();
                 }
             } catch (IOException e) {
-                SaveAsServer.LOGGER.error("Error when closing the file stream while zipping " + zipFile, e);
+                BetaLAN.LOGGER.error("Error when closing the file stream while zipping " + zipFile, e);
             }
         }
     }
@@ -108,7 +108,7 @@ public class FileUtil {
 
     private static String generateZipEntry(String file) {
         File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-        File worldDir = new File(savesDir, SaveAsServer.CurrentWorldFolder);
+        File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
         return file.substring(worldDir.getAbsolutePath().replaceAll("\\\\", "/").length() + 1);
     }
 }

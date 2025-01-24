@@ -1,6 +1,6 @@
-package com.github.telvarost.saveasserver.mixin.client;
+package com.github.telvarost.betalan.mixin.client;
 
-import com.github.telvarost.saveasserver.LocalServerManager;
+import com.github.telvarost.betalan.LocalServerManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.GameMenuScreen;
@@ -30,12 +30,12 @@ public class PauseMixin extends Screen {
             optionsButton.width = newWidth;
 
             TranslationStorage translationStorage = TranslationStorage.getInstance();
-            this.buttons.add(new ButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20, translationStorage.get("menu.saveasserver.opentolan")));
+            this.buttons.add(new ButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20, translationStorage.get("menu.betalan.opentolan")));
         }
     }
 
     @Inject(method = "buttonClicked", at = @At("RETURN"))
-    protected void saveAsServer_openToLanButtonClicked(ButtonWidget arg, CallbackInfo ci) {
+    protected void betaLan_openToLanButtonClicked(ButtonWidget arg, CallbackInfo ci) {
         if (arg.id == 73) {
             PlayerEntity player = PlayerHelper.getPlayerFromGame();
             if (null != player) {

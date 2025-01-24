@@ -1,11 +1,11 @@
-package com.github.telvarost.saveasserver;
+package com.github.telvarost.betalan;
 
 import net.glasslauncher.mods.gcapi3.api.ConfigEntry;
 import net.glasslauncher.mods.gcapi3.api.ConfigRoot;
 
 public class Config {
 
-    @ConfigRoot(value = "config", visibleName = "SaveAsServer")
+    @ConfigRoot(value = "config", visibleName = "BetaLAN")
     public static ConfigFields config = new ConfigFields();
 
     public static class ConfigFields {

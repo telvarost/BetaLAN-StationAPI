@@ -1,4 +1,4 @@
-package com.github.telvarost.saveasserver.util;
+package com.github.telvarost.betalan.util;
 
 public class MathUtil {
     public static int tryParseInt(String toParse, int defaultValue) {
