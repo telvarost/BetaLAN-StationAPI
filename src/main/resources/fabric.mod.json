@@ -6,7 +6,8 @@
   "name": "BetaLAN",
   "description": "Allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.",
   "authors": [
-    "Telvarost"
+    "Telvarost",
+    "DanyGames2014"
   ],
   "contact": {
     "issues": "https://github.com/telvarost/SaveAsServer-StationAPI/issues",
