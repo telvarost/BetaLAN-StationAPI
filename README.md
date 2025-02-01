@@ -20,12 +20,12 @@ A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server 
 3. Add StationAPI to the mod folder for the instance: https://modrinth.com/mod/stationapi
 4. (Optional) Add Mod Menu to the mod folder for the instance: https://modrinth.com/mod/modmenu-beta
 5. (Optional) Add GlassConfigAPI 3.0+ to the mod folder for the instance: https://modrinth.com/mod/glass-config-api
-6. Add this mod to the mod folder for the instance: https://github.com/telvarost/SaveAsServer-StationAPI/releases
+6. Add this mod to the mod folder for the instance: https://github.com/telvarost/BetaLAN-StationAPI/releases
 7. Run and enjoy! 👍
 
 ## Feedback
 
-Got any suggestions on what should be added next? Feel free to share it by [creating an issue](https://github.com/telvarost/SaveAsServer-StationAPI/issues/new). Know how to code and want to do it yourself? Then look below on how to get started.
+Got any suggestions on what should be added next? Feel free to share it by [creating an issue](https://github.com/telvarost/BetaLAN-StationAPI/issues/new). Know how to code and want to do it yourself? Then look below on how to get started.
 
 ## Contributing
 
