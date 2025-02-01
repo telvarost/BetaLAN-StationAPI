@@ -1,0 +1,5 @@
+accessWidener v2 named
+
+accessible field net/minecraft/client/render/ProgressRenderer stage Ljava/lang/String;
+accessible field net/minecraft/client/gui/widget/ButtonWidget width I
+accessible field net/minecraft/client/Minecraft INSTANCE Lnet/minecraft/client/Minecraft;

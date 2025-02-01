@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "saveasserver",
+  "id": "betalan",
   "version": "${version}",
 
-  "name": "SaveAsServer",
+  "name": "BetaLAN",
   "description": "Allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.",
   "authors": [
     "Telvarost"
@@ -15,24 +15,26 @@
   },
 
   "license": "MIT",
-  "icon": "assets/saveasserver/icon.png",
+  "icon": "assets/betalan/icon.png",
 
   "environment": "*",
+  "accessWidener": "betalan.accesswidener",
   "entrypoints": {
     "stationapi:event_bus": [
+      "com.github.telvarost.betalan.BetaLAN"
     ],
     "stationapi:event_bus_client": [
     ],
     "stationapi:event_bus_server": [
     ],
     "gcapi3": [
-      "com.github.telvarost.saveasserver.Config"
+      "com.github.telvarost.betalan.Config"
     ]
   },
   "mixins": [
-    "saveasserver.mixins.json"
+    "betalan.mixins.json"
   ],
-
+  
   "depends": {
     "minecraft": "1.0.0-beta.7.3",
     "stationapi": "*"
