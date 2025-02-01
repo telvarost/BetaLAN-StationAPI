@@ -97,7 +97,7 @@ dependencies {
 		transitive false
 	}
 
-	modImplementation("com.github.matthewperiut:retrocommands:${project.retrocommands_version}") {
+	modImplementation("maven.modrinth:retrocommands:${project.retrocommands_version}") {
 		transitive false
 	}
 
@@ -105,9 +105,9 @@ dependencies {
 		transitive false
 	}
 
-//	modRuntimeOnly ("com.github.matthewperiut:stapi-fast-intro:17a7ed0") {
-//		transitive false
-//	}
+	modRuntimeOnly ("maven.modrinth:fast-stapi-intro:${project.stapi_fast_intro_version}") {
+		transitive false
+	}
 }
 
 processResources {
