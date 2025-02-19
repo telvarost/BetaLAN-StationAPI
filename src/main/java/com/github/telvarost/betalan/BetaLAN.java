@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 public class BetaLAN {
     @Entrypoint.Logger
-    public static final Logger LOGGER = Null.get();
+    public static Logger LOGGER = Null.get();
     
     public static boolean isLanServer = false;
     public static String CurrentWorldFolder = "";
