@@ -383,27 +383,27 @@ public class LocalServerManager {
             } else {
                 writer.println("#level-name=world");
             }
-            writer.println("default-gamemode=0");
-            writer.println("view-distance=10");
-            writer.println("white-list=false");
+            writer.println("default-gamemode=" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
+            writer.println("view-distance=" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
+            writer.println("white-list=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
             writer.println("server-ip=");
-            writer.println("pvp=true");
+            writer.println("pvp=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP);
             writer.println("level-seed=");
-            writer.println("spawn-animals=true");
+            writer.println("spawn-animals=" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS);
             writer.println("server-port=" + Config.config.SERVER_PORT);
-            writer.println("allow-nether=true");
+            writer.println("allow-nether=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
             if (player.world.difficulty >= 1) {
                 writer.println("spawn-monsters=true");
             } else {
                 writer.println("spawn-monsters=false");
             }
-            writer.println("max-players=20");
+            writer.println("max-players=" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS);
             if (Config.config.FORCE_ONLINEMODE_FALSE) {
                 writer.println("online-mode=false");
             } else {
                 writer.println("online-mode=true");
             }
-            writer.println("allow-flight=false");
+            writer.println("allow-flight=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
 
             /** - Release file resources */
             writer.close();
@@ -431,11 +431,39 @@ public class LocalServerManager {
                     }
                 }
 
+                /** - Advanced config */
+                if (currentLine.contains("white-list")) {
+                    writer.write("white-list=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST + "\n");
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("default-gamemode")) {
+                    writer.write("default-gamemode=" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal() + "\n");
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("view-distance")) {
+                    writer.write("view-distance=" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE + "\n");
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("pvp")) {
+                    writer.write("pvp=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP + "\n");
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("spawn-animals")) {
+                    writer.write("spawn-animals=" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS + "\n");
+                }
+
                 /** - Change port to port from GCAPI3 config */
                 if (currentLine.contains("server-port")) {
-                    if (null != BetaLAN.CurrentWorldFolder) {
-                        writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
-                    }
+                    writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("allow-nether")) {
+                    writer.write("allow-nether=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER + "\n");
                 }
 
                 /** - Change spawn-monsters to match current difficulty setting */
@@ -447,13 +475,21 @@ public class LocalServerManager {
                     }
                 }
 
+                /** - Advanced config */
+                if (currentLine.contains("max-players")) {
+                    writer.write("max-players=" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS + "\n");
+                }
+
                 /** - Change to offline mode if online-mode is forced false */
                 if (Config.config.FORCE_ONLINEMODE_FALSE) {
                     if (currentLine.contains("online-mode")) {
-                        if (null != BetaLAN.CurrentWorldFolder) {
-                            writer.write("online-mode=false\n");
-                        }
+                        writer.write("online-mode=false\n");
                     }
+                }
+
+                /** - Advanced config */
+                if (currentLine.contains("allow-flight")) {
+                    writer.write("allow-flight=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT + "\n");
                 }
             }
 

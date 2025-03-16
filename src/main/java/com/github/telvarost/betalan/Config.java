@@ -1,5 +1,7 @@
 package com.github.telvarost.betalan;
 
+import com.github.telvarost.betalan.util.DefaultGamemodeEnum;
+import net.glasslauncher.mods.gcapi3.api.ConfigCategory;
 import net.glasslauncher.mods.gcapi3.api.ConfigEntry;
 import net.glasslauncher.mods.gcapi3.api.ConfigRoot;
 
@@ -9,6 +11,9 @@ public class Config {
     public static ConfigFields config = new ConfigFields();
 
     public static class ConfigFields {
+
+        @ConfigCategory(name = "Advanced Server Config")
+        public final AdvancedServerConfig ADVANCED_SERVER_CONFIG = new AdvancedServerConfig();
 
         @ConfigEntry(name = "Automatically OP LAN Server Host")
         public Boolean AUTO_OP_LAN_SERVER_HOST = true;
@@ -30,5 +35,32 @@ public class Config {
 
         @ConfigEntry(name = "Enable Server logs in console")
         public Boolean enableServerLogsInConsole = true;
+    }
+
+    public static class AdvancedServerConfig {
+
+        @ConfigEntry(name = "Allow Flight")
+        public Boolean ALLOW_FLIGHT = false;
+
+        @ConfigEntry(name = "Allow Nether", description = "If false do not 'Open to LAN' in the nether")
+        public Boolean ALLOW_NETHER = true;
+
+        @ConfigEntry(name = "Default Gamemode", description = "Requires BHCreative to use default creative")
+        public DefaultGamemodeEnum DEFAULT_GAMEMODE = DefaultGamemodeEnum.SURVIVAL;
+
+        @ConfigEntry(name = "Enable PVP")
+        public Boolean ENABLE_PVP = true;
+
+        @ConfigEntry(name = "Enable White-list")
+        public Boolean ENABLE_WHITELIST = false;
+
+        @ConfigEntry(name = "Max Players", maxLength = 256)
+        public Integer MAX_PLAYERS = 20;
+
+        @ConfigEntry(name = "Spawn Animals")
+        public Boolean SPAWN_ANIMALS = true;
+
+        @ConfigEntry(name = "View Distance", maxLength = 256)
+        public Integer VIEW_DISTANCE = 10;
     }
 }

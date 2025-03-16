@@ -30,6 +30,9 @@
     ],
     "gcapi3": [
       "com.github.telvarost.betalan.Config"
+    ],
+    "gcapi3:factory_provider": [
+      "com.github.telvarost.betalan.util.DefaultGamemodeEnumFactory"
     ]
   },
   "mixins": [
