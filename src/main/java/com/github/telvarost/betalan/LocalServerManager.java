@@ -290,10 +290,10 @@ public class LocalServerManager {
             File serverPropertiesFile = new File(Minecraft.getRunDirectory(), "server.properties");
             if (!serverPropertiesFile.exists()) {
                 /** - LAN server properties file does not exist, create new LAN server properties file */
-                createLocalServerPropertiesFile(serverPropertiesFile);
+                createLocalServerPropertiesFile(serverPropertiesFile, player);
             } else {
                 /** - LAN server properties exists, edit LAN server properties file */
-                editLocalServerPropertiesFile(serverPropertiesFile);
+                editLocalServerPropertiesFile(serverPropertiesFile, player);
             }
 
             /** - Extract server jar file */
@@ -373,7 +373,7 @@ public class LocalServerManager {
         }
     }
 
-    private void createLocalServerPropertiesFile(File serverPropertiesFile) {
+    private void createLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
         try {
             PrintWriter writer = new PrintWriter(serverPropertiesFile, StandardCharsets.UTF_8);
             writer.println("#Minecraft server properties");
@@ -392,7 +392,11 @@ public class LocalServerManager {
             writer.println("spawn-animals=true");
             writer.println("server-port=" + Config.config.SERVER_PORT);
             writer.println("allow-nether=true");
-            writer.println("spawn-monsters=true");
+            if (player.world.difficulty >= 1) {
+                writer.println("spawn-monsters=true");
+            } else {
+                writer.println("spawn-monsters=false");
+            }
             writer.println("max-players=20");
             if (Config.config.FORCE_ONLINEMODE_FALSE) {
                 writer.println("online-mode=false");
@@ -408,7 +412,7 @@ public class LocalServerManager {
         }
     }
 
-    private void editLocalServerPropertiesFile(File serverPropertiesFile) {
+    private void editLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
         File tempServerPropertiesFile = new File(Minecraft.getRunDirectory(), "_server.properties");
         try {
             Files.copy(serverPropertiesFile.toPath(), tempServerPropertiesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -431,6 +435,15 @@ public class LocalServerManager {
                 if (currentLine.contains("server-port")) {
                     if (null != BetaLAN.CurrentWorldFolder) {
                         writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
+                    }
+                }
+
+                /** - Change spawn-monsters to match current difficulty setting */
+                if (currentLine.contains("spawn-monsters")) {
+                    if (player.world.difficulty >= 1) {
+                        writer.write("spawn-monsters=true\n");
+                    } else {
+                        writer.write("spawn-monsters=false\n");
                     }
                 }
 
