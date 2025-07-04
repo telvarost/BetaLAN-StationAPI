@@ -17,6 +17,11 @@ public enum ServerStatus {
     BACKUP,
 
     /**
+     * Copying the world for showcase mode
+     */
+    PREPARING,
+
+    /**
      * Launching the server process
      */
     LAUNCHING,

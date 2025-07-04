@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.stat.Stats;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -99,7 +100,13 @@ public class LocalServerManager {
         switch (status) {
             // The first stage, this will determine if a backup will be done
             case INITIALIZING -> {
-                if (Config.config.BACKUP_WORLD_ON_LAN_SERVER_LAUNCH) {
+                File savesDir = new File(Minecraft.getRunDirectory(), "saves");
+                File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
+                BetaLAN.ServerWorld = worldDir;
+
+                if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
+                    status = ServerStatus.PREPARING;
+                } else if (Config.config.BACKUP_WORLD_ON_LAN_SERVER_LAUNCH) {
                     status = ServerStatus.BACKUP;
                 } else {
                     status = ServerStatus.LAUNCHING;
@@ -114,16 +121,33 @@ public class LocalServerManager {
                 FileUtil.generateFileList(worldDir, fileList);
                 FileUtil.zipFiles("saves" + File.separator + "_" + BetaLAN.CurrentWorldFolder + ".zip", fileList);
 
-                BetaLAN.LOGGER.info("World Backup Successfull");
+                BetaLAN.LOGGER.info("World Backup Successful!");
+                status = ServerStatus.LAUNCHING;
+            }
+
+            // Prepares the showcase world
+            case PREPARING -> {
+                File showcaseDir = new File(Minecraft.getRunDirectory(), "showcase");
+                File showcaseWorldDir = new File(showcaseDir, BetaLAN.CurrentWorldFolder);
+                File savesDir = new File(Minecraft.getRunDirectory(), "saves");
+                File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
+
+                try {
+                    FileUtils.deleteDirectory(showcaseDir);
+                    FileUtils.copyDirectory(worldDir, showcaseWorldDir);
+                    BetaLAN.ServerWorld = showcaseWorldDir;
+                    BetaLAN.LOGGER.info("Showcase World Creation Successful!");
+                } catch (IOException e) {
+                    BetaLAN.LOGGER.info("Showcase World Creation Failed!");
+                }
+
                 status = ServerStatus.LAUNCHING;
             }
 
             // Starts launching the server
             case LAUNCHING -> {
                 /** - Create server lock */
-                File savesDir = new File(Minecraft.getRunDirectory(), "saves");
-                File worldDir = new File(savesDir, BetaLAN.CurrentWorldFolder);
-                File serverLock = new File(worldDir, "server.lock");
+                File serverLock = new File(BetaLAN.ServerWorld, "server.lock");
 
                 if (!serverLock.exists()) {
                     try {
@@ -379,9 +403,13 @@ public class LocalServerManager {
             writer.println("#Minecraft server properties");
             writer.println("#" + new Date());
             if (null != BetaLAN.CurrentWorldFolder) {
-                writer.println("level-name=./saves/" + BetaLAN.CurrentWorldFolder);
+                if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
+                    writer.println("level-name=./showcase/" + BetaLAN.CurrentWorldFolder);
+                } else {
+                    writer.println("level-name=./saves/" + BetaLAN.CurrentWorldFolder);
+                }
             } else {
-                writer.println("#level-name=world");
+                writer.println("level-name=world");
             }
             writer.println("default-gamemode=" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
             writer.println("view-distance=" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
@@ -427,7 +455,13 @@ public class LocalServerManager {
                 /** - Change level to currently selected client world */
                 if (currentLine.contains("level-name")) {
                     if (null != BetaLAN.CurrentWorldFolder) {
-                        writer.write("level-name=./saves/" + BetaLAN.CurrentWorldFolder + "\n");
+                        if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
+                            writer.write("level-name=./showcase/" + BetaLAN.CurrentWorldFolder + "\n");
+                        } else {
+                            writer.write("level-name=./saves/" + BetaLAN.CurrentWorldFolder + "\n");
+                        }
+                    } else {
+                        writer.write("level-name=world" + "\n");
                     }
                 }
 

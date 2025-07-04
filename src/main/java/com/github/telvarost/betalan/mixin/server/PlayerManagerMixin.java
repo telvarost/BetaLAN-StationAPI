@@ -27,7 +27,7 @@ public class PlayerManagerMixin {
 
     @Inject(method = "disconnect", at = @At("RETURN"))
     public void disconnect(ServerPlayerEntity player, CallbackInfo ci) {
-        if(BetaLAN.isLanServer){
+        if (BetaLAN.isLanServer) {
             if (player != null && hostPlayerName.equals(player.name)) {
                 server.stop();
             }
