@@ -7,7 +7,7 @@ A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server 
   * The backup file is recreated everytime the server is launched using the most recent world files
 * In v2.3.0 and above, world showcase mode is available
   * In world showcase mode a copy of your world will be created that the server will launch with
-  * No world or player changes will be saved and no world backup will be created (since nothing will be saved anyway)
+  * No world or player changes will be saved and no world backup will be created (since nothing will be saved to the original world anyway)
 
 ## Troubleshooting
 
