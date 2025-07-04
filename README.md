@@ -2,10 +2,10 @@
 
 A StationAPI mod for Minecraft Beta 1.7.3 that allows easily launching a server using the currently loaded single-player world and currently in use mod-set/configuration.
 * Configure server settings and java version using GlassConfigAPI 3 (GCAPI3).
-* In v1.1.0 and above a backup world zip file is created on server launch (if the config setting is turned on).
+* In v1.1.0 and above, a backup world zip file is created on server launch (if the config setting is turned on).
   * The backup file's name begins with an underscore (`_`) and ends with `.zip`
   * The backup file is recreated everytime the server is launched using the most recent world files
-* In v2.3.0 and above world showcase mode is available
+* In v2.3.0 and above, world showcase mode is available
   * In world showcase mode a copy of your world will be created that the server will launch with
   * No world or player changes will be saved and no world backup will be created (since nothing will be saved anyway)
 
