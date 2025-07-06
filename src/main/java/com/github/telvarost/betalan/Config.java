@@ -25,7 +25,7 @@ public class Config {
                 name = "Enable World Showcase Mode",
                 description = "World/Player changes will not be saved"
         )
-        public Boolean ENABLE_WORLD_SHOWCASE_MODE = true;
+        public Boolean ENABLE_WORLD_SHOWCASE_MODE = false;
 
         @ConfigEntry(name = "Force \"online-mode\" To False")
         public Boolean FORCE_ONLINEMODE_FALSE = true;
