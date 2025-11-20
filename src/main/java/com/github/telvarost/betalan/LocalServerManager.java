@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Properties;
 
 @SuppressWarnings({"deprecation", "DanglingJavadoc", "ResultOfMethodCallIgnored"})
 public class LocalServerManager {
@@ -312,13 +312,7 @@ public class LocalServerManager {
 
             /** - Create/edit LAN server properties */
             File serverPropertiesFile = new File(Minecraft.getRunDirectory(), "server.properties");
-            if (!serverPropertiesFile.exists()) {
-                /** - LAN server properties file does not exist, create new LAN server properties file */
-                createLocalServerPropertiesFile(serverPropertiesFile, player);
-            } else {
-                /** - LAN server properties exists, edit LAN server properties file */
-                editLocalServerPropertiesFile(serverPropertiesFile, player);
-            }
+            createOrLoadLocalServerPropertiesFile(serverPropertiesFile, player);
 
             /** - Extract server jar file */
             File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
@@ -397,150 +391,62 @@ public class LocalServerManager {
         }
     }
 
-    private void createLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
+    private void createOrLoadLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
         try {
-            PrintWriter writer = new PrintWriter(serverPropertiesFile, StandardCharsets.UTF_8);
-            writer.println("#Minecraft server properties");
-            writer.println("#" + new Date());
+            Properties localServerProperties = new Properties();
+            boolean creatingFile = true;
+
+            if (serverPropertiesFile.exists()) {
+                creatingFile = false;
+                localServerProperties.load(new FileInputStream(serverPropertiesFile));
+            }
+
+            localServerProperties.setProperty("allow-flight", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
+            localServerProperties.setProperty("allow-nether", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
+            localServerProperties.setProperty("default-gamemode", "" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
+            // UniTweaks Support
+            if (FabricLoader.getInstance().isModLoaded("unitweaks")) {
+                localServerProperties.setProperty("difficulty", "" + player.world.difficulty);
+            }
             if (null != BetaLAN.CurrentWorldFolder) {
                 if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
-                    writer.println("level-name=./showcase/" + BetaLAN.CurrentWorldFolder);
+                    localServerProperties.setProperty("level-name", "./showcase/" + BetaLAN.CurrentWorldFolder);
                 } else {
-                    writer.println("level-name=./saves/" + BetaLAN.CurrentWorldFolder);
+                    localServerProperties.setProperty("level-name", "./saves/" + BetaLAN.CurrentWorldFolder);
                 }
             } else {
-                writer.println("level-name=world");
+                localServerProperties.setProperty("level-name", "world");
             }
-            writer.println("default-gamemode=" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
-            writer.println("view-distance=" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
-            writer.println("white-list=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
-            writer.println("server-ip=");
-            writer.println("pvp=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP);
-            writer.println("level-seed=");
-            writer.println("spawn-animals=" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS);
-            writer.println("server-port=" + Config.config.SERVER_PORT);
-            writer.println("allow-nether=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
-            if (player.world.difficulty >= 1) {
-                writer.println("spawn-monsters=true");
-            } else {
-                writer.println("spawn-monsters=false");
+            if (creatingFile) {
+                localServerProperties.setProperty("level-seed", "");
             }
-            writer.println("max-players=" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS);
+            localServerProperties.setProperty("max-players", "" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS);
             if (Config.config.FORCE_ONLINEMODE_FALSE) {
-                writer.println("online-mode=false");
+                localServerProperties.setProperty("online-mode", "" + false);
+            } else if (creatingFile) {
+                localServerProperties.setProperty("online-mode", "" + true);
+            }
+            localServerProperties.setProperty("pvp", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP);
+            if (creatingFile) {
+                localServerProperties.setProperty("server-ip", "");
+            }
+            localServerProperties.setProperty("server-port", "" + Config.config.SERVER_PORT);
+            localServerProperties.setProperty("spawn-animals", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS);
+            if (player.world.difficulty >= 1) {
+                localServerProperties.setProperty("spawn-monsters", "" + true);
             } else {
-                writer.println("online-mode=true");
+                localServerProperties.setProperty("spawn-monsters", "" + false);
             }
-            writer.println("allow-flight=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
-
-            /** - Release file resources */
-            writer.close();
-        } catch (IOException e) {
-            BetaLAN.LOGGER.error("Failed to create local server properties file", e);
-        }
-    }
-
-    private void editLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
-        File tempServerPropertiesFile = new File(Minecraft.getRunDirectory(), "_server.properties");
-        try {
-            Files.copy(serverPropertiesFile.toPath(), tempServerPropertiesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            FileWriter writer = new FileWriter(tempServerPropertiesFile);
-            Reader reader = new FileReader(serverPropertiesFile);
-            BufferedReader br = new BufferedReader(reader);
-
-            /** - Scan file for values to change */
-            while (br.ready()) {
-                String currentLine = br.readLine();
-
-                /** - Change level to currently selected client world */
-                if (currentLine.contains("level-name")) {
-                    if (null != BetaLAN.CurrentWorldFolder) {
-                        if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
-                            writer.write("level-name=./showcase/" + BetaLAN.CurrentWorldFolder + "\n");
-                        } else {
-                            writer.write("level-name=./saves/" + BetaLAN.CurrentWorldFolder + "\n");
-                        }
-                    } else {
-                        writer.write("level-name=world" + "\n");
-                    }
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("white-list")) {
-                    writer.write("white-list=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST + "\n");
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("default-gamemode")) {
-                    writer.write("default-gamemode=" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal() + "\n");
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("view-distance")) {
-                    writer.write("view-distance=" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE + "\n");
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("pvp")) {
-                    writer.write("pvp=" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP + "\n");
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("spawn-animals")) {
-                    writer.write("spawn-animals=" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS + "\n");
-                }
-
-                /** - Change port to port from GCAPI3 config */
-                if (currentLine.contains("server-port")) {
-                    writer.write("server-port=" + Config.config.SERVER_PORT + "\n");
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("allow-nether")) {
-                    writer.write("allow-nether=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER + "\n");
-                }
-
-                /** - Change spawn-monsters to match current difficulty setting */
-                if (currentLine.contains("spawn-monsters")) {
-                    if (player.world.difficulty >= 1) {
-                        writer.write("spawn-monsters=true\n");
-                    } else {
-                        writer.write("spawn-monsters=false\n");
-                    }
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("max-players")) {
-                    writer.write("max-players=" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS + "\n");
-                }
-
-                /** - Change to offline mode if online-mode is forced false */
-                if (Config.config.FORCE_ONLINEMODE_FALSE) {
-                    if (currentLine.contains("online-mode")) {
-                        writer.write("online-mode=false\n");
-                    }
-                }
-
-                /** - Advanced config */
-                if (currentLine.contains("allow-flight")) {
-                    writer.write("allow-flight=" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT + "\n");
-                }
+            // UniTweaks Support
+            if (FabricLoader.getInstance().isModLoaded("unitweaks")) {
+                localServerProperties.setProperty("spawn-protection", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_PROTECTION_RADIUS);
             }
+            localServerProperties.setProperty("view-distance", "" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
+            localServerProperties.setProperty("white-list", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
 
-            /** - Release file resources */
-            writer.close();
-            br.close();
-            reader.close();
-
-            /** - Replace current properties file with newly created properties file */
-            tempServerPropertiesFile.renameTo(serverPropertiesFile);
-        } catch (IOException e) {
-            BetaLAN.LOGGER.error("Failed to edit local server properties file", e);
-        }
-
-        /** - Ensure temporary properties file is deleted if it is no longer needed */
-        if (serverPropertiesFile.exists() && tempServerPropertiesFile.exists()) {
-            tempServerPropertiesFile.delete();
+            localServerProperties.store(new FileOutputStream(serverPropertiesFile), "Minecraft server properties");
+        } catch (Exception exception) {
+            BetaLAN.LOGGER.error("Failed to create/edit local server properties file", exception);
         }
     }
 }

@@ -66,6 +66,9 @@ public class Config {
         @ConfigEntry(name = "Spawn Animals")
         public Boolean SPAWN_ANIMALS = true;
 
+        @ConfigEntry(name = "Spawn Protection Radius", maxLength = 256, description = "Requires UniTweaks to work")
+        public Integer SPAWN_PROTECTION_RADIUS = 16;
+
         @ConfigEntry(name = "View Distance", maxLength = 256)
         public Integer VIEW_DISTANCE = 10;
     }
