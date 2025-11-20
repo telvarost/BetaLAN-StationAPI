@@ -25,9 +25,6 @@ public class LocalServerManager {
     // The thread of the server manager
     public Thread managerThread;
 
-    // The properties to generate for the local server
-    private Properties localServerProperties = new Properties();
-
     // The status of the server
     public volatile ServerStatus status;
     public Process serverProcess;
@@ -396,55 +393,55 @@ public class LocalServerManager {
 
     private void createOrLoadLocalServerPropertiesFile(File serverPropertiesFile, PlayerEntity player) {
         try {
+            Properties localServerProperties = new Properties();
             boolean creatingFile = true;
-            this.localServerProperties = new Properties();
             if (serverPropertiesFile.exists()) {
-                this.localServerProperties.load(new FileInputStream(serverPropertiesFile));
                 creatingFile = false;
+                localServerProperties.load(new FileInputStream(serverPropertiesFile));
             }
-            this.localServerProperties.setProperty("allow-flight", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
-            this.localServerProperties.setProperty("allow-nether", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
-            this.localServerProperties.setProperty("default-gamemode", "" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
+            localServerProperties.setProperty("allow-flight", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
+            localServerProperties.setProperty("allow-nether", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
+            localServerProperties.setProperty("default-gamemode", "" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
             // UniTweaks Support
             if (FabricLoader.getInstance().isModLoaded("unitweaks")) {
-                this.localServerProperties.setProperty("difficulty", "" + player.world.difficulty);
+                localServerProperties.setProperty("difficulty", "" + player.world.difficulty);
             }
             if (null != BetaLAN.CurrentWorldFolder) {
                 if (Config.config.ENABLE_WORLD_SHOWCASE_MODE) {
-                    this.localServerProperties.setProperty("level-name", "./showcase/" + BetaLAN.CurrentWorldFolder);
+                    localServerProperties.setProperty("level-name", "./showcase/" + BetaLAN.CurrentWorldFolder);
                 } else {
-                    this.localServerProperties.setProperty("level-name", "./saves/" + BetaLAN.CurrentWorldFolder);
+                    localServerProperties.setProperty("level-name", "./saves/" + BetaLAN.CurrentWorldFolder);
                 }
             } else {
-                this.localServerProperties.setProperty("level-name", "world");
+                localServerProperties.setProperty("level-name", "world");
             }
             if (creatingFile) {
-                this.localServerProperties.setProperty("level-seed", "");
+                localServerProperties.setProperty("level-seed", "");
             }
-            this.localServerProperties.setProperty("max-players", "" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS);
+            localServerProperties.setProperty("max-players", "" + Config.config.ADVANCED_SERVER_CONFIG.MAX_PLAYERS);
             if (Config.config.FORCE_ONLINEMODE_FALSE) {
-                this.localServerProperties.setProperty("online-mode", "" + false);
+                localServerProperties.setProperty("online-mode", "" + false);
             } else if (creatingFile) {
-                this.localServerProperties.setProperty("online-mode", "" + true);
+                localServerProperties.setProperty("online-mode", "" + true);
             }
-            this.localServerProperties.setProperty("pvp", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP);
+            localServerProperties.setProperty("pvp", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_PVP);
             if (creatingFile) {
-                this.localServerProperties.setProperty("server-ip", "");
+                localServerProperties.setProperty("server-ip", "");
             }
-            this.localServerProperties.setProperty("server-port", "" + Config.config.SERVER_PORT);
-            this.localServerProperties.setProperty("spawn-animals", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS);
+            localServerProperties.setProperty("server-port", "" + Config.config.SERVER_PORT);
+            localServerProperties.setProperty("spawn-animals", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_ANIMALS);
             if (player.world.difficulty >= 1) {
-                this.localServerProperties.setProperty("spawn-monsters", "" + true);
+                localServerProperties.setProperty("spawn-monsters", "" + true);
             } else {
-                this.localServerProperties.setProperty("spawn-monsters", "" + false);
+                localServerProperties.setProperty("spawn-monsters", "" + false);
             }
             // UniTweaks Support
             if (FabricLoader.getInstance().isModLoaded("unitweaks")) {
-                this.localServerProperties.setProperty("spawn-protection", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_PROTECTION_RADIUS);
+                localServerProperties.setProperty("spawn-protection", "" + Config.config.ADVANCED_SERVER_CONFIG.SPAWN_PROTECTION_RADIUS);
             }
-            this.localServerProperties.setProperty("view-distance", "" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
-            this.localServerProperties.setProperty("white-list", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
-            this.localServerProperties.store(new FileOutputStream(serverPropertiesFile), "Minecraft server properties");
+            localServerProperties.setProperty("view-distance", "" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
+            localServerProperties.setProperty("white-list", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
+            localServerProperties.store(new FileOutputStream(serverPropertiesFile), "Minecraft server properties");
         } catch (Exception exception) {
             BetaLAN.LOGGER.error("Failed to create local server properties file", exception);
         }
