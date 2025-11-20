@@ -446,7 +446,7 @@ public class LocalServerManager {
 
             localServerProperties.store(new FileOutputStream(serverPropertiesFile), "Minecraft server properties");
         } catch (Exception exception) {
-            BetaLAN.LOGGER.error("Failed to create local server properties file", exception);
+            BetaLAN.LOGGER.error("Failed to create/edit local server properties file", exception);
         }
     }
 }
