@@ -395,10 +395,12 @@ public class LocalServerManager {
         try {
             Properties localServerProperties = new Properties();
             boolean creatingFile = true;
+
             if (serverPropertiesFile.exists()) {
                 creatingFile = false;
                 localServerProperties.load(new FileInputStream(serverPropertiesFile));
             }
+
             localServerProperties.setProperty("allow-flight", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_FLIGHT);
             localServerProperties.setProperty("allow-nether", "" + Config.config.ADVANCED_SERVER_CONFIG.ALLOW_NETHER);
             localServerProperties.setProperty("default-gamemode", "" + Config.config.ADVANCED_SERVER_CONFIG.DEFAULT_GAMEMODE.ordinal());
@@ -441,6 +443,7 @@ public class LocalServerManager {
             }
             localServerProperties.setProperty("view-distance", "" + Config.config.ADVANCED_SERVER_CONFIG.VIEW_DISTANCE);
             localServerProperties.setProperty("white-list", "" + Config.config.ADVANCED_SERVER_CONFIG.ENABLE_WHITELIST);
+
             localServerProperties.store(new FileOutputStream(serverPropertiesFile), "Minecraft server properties");
         } catch (Exception exception) {
             BetaLAN.LOGGER.error("Failed to create local server properties file", exception);
