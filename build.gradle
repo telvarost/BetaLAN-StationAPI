@@ -1,7 +1,7 @@
 plugins {
 	id 'maven-publish'
-	id 'fabric-loom' version '1.9.2'
-	id 'babric-loom-extension' version '1.9.4'
+	id 'fabric-loom' version '1.11.7'
+	id 'babric-loom-extension' version '1.10.2'
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -80,7 +80,7 @@ dependencies {
 	implementation(include("me.carleslc:Simple-Yaml:1.8.4") as Dependency)
 
 	// Optional, but convenient mods for mod creators and users alike.
-	modImplementation("net.glasslauncher.mods:ModMenu:${project.modmenu_version}") {
+	modImplementation("maven.modrinth:modmenu-babric:${project.modmenu_version}") {
 		transitive false
 	}
 
@@ -97,7 +97,9 @@ dependencies {
 	}
 
 	// StationAPI dependency
-	modImplementation "net.modificationstation:StationAPI:${project.stapi_version}"
+	modImplementation ("net.modificationstation:StationAPI:${project.stapi_version}") {
+		exclude group: "babric", module: "fabric-loader"
+	}
 
 	// StationAPI development mods
 	modRuntimeOnly ("maven.modrinth:fast-stapi-intro:${project.stapi_fast_intro_version}") {

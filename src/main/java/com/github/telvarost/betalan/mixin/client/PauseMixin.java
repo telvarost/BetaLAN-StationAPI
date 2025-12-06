@@ -16,21 +16,38 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("unchecked")
 @Environment(EnvType.CLIENT)
-@Mixin(GameMenuScreen.class)
+@Mixin(value = GameMenuScreen.class, priority = 1100)
 public class PauseMixin extends Screen {
     public PauseMixin() {
     }
 
-    @Inject(method = "init", at = @At("RETURN"))
+    @Inject(method = "init", at = @At("TAIL"))
     public void init_return(CallbackInfo ci) {
         if ((this.minecraft.world != null && !this.minecraft.world.isRemote)) {
-            ButtonWidget optionsButton = minecraft.isApplet ? (ButtonWidget) this.buttons.get(this.buttons.size() - 2) : (ButtonWidget) this.buttons.get(2);
+            ButtonWidget optionsButton = null;
 
-            int newWidth = optionsButton.width / 2 - 1;
-            optionsButton.width = newWidth;
+            for (int buttonIndex = 0; buttonIndex < this.buttons.size(); buttonIndex++) {
+                ButtonWidget buttonWidget = (ButtonWidget)this.buttons.get(buttonIndex);
 
-            TranslationStorage translationStorage = TranslationStorage.getInstance();
-            this.buttons.add(new ButtonWidget(73, this.width / 2 + 2, optionsButton.y, newWidth, 20, translationStorage.get("menu.betalan.opentolan")));
+                if (  (null != buttonWidget)
+                   && (0 == buttonWidget.id)
+                ) {
+                    optionsButton = buttonWidget;
+                }
+            }
+
+            if (null != optionsButton) {
+                int newWidth = optionsButton.width / 2 - 1;
+                optionsButton.width = newWidth;
+
+                TranslationStorage translationStorage = TranslationStorage.getInstance();
+                this.buttons.add(new ButtonWidget( 73
+                                                 , (optionsButton.x + optionsButton.width) + 3
+                                                 , optionsButton.y
+                                                 , newWidth
+                                                 , 20
+                                                 , translationStorage.get("menu.betalan.opentolan") ));
+            }
         }
     }
 
