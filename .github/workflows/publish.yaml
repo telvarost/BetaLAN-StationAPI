@@ -20,8 +20,10 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - name: Setup Gradle
+      - name: Build
         uses: gradle/actions/setup-gradle@v5
+        with:
+          arguments: 'build'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
