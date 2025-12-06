@@ -24,7 +24,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build
-        working-directory: build
         run: ./gradlew build
 
       - name: Upload artifact
