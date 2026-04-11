@@ -163,7 +163,7 @@ public class LocalServerManager {
 
                 /** - Launch server */
                 String argNoGui = (Config.config.SERVER_GUI_ENABLED) ? "" : "nogui";
-                ProcessBuilder processBuilder = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.16.9.jar", argNoGui);
+                ProcessBuilder processBuilder = new ProcessBuilder(Config.config.JAVA_PATH, "-jar", "local-babric-server.0.19.1.jar", argNoGui);
                 processBuilder.directory(Minecraft.getRunDirectory());
 
                 try {
@@ -315,10 +315,10 @@ public class LocalServerManager {
             createOrLoadLocalServerPropertiesFile(serverPropertiesFile, player);
 
             /** - Extract server jar file */
-            File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
+            File storedServerJar = new File(Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.19.1.jar");
             if (!storedServerJar.exists()) {
-                FileUtil.copy(getClass().getResourceAsStream("/assets/betalan/local-babric-server.0.16.9.jar")
-                        , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.16.9.jar");
+                FileUtil.copy(getClass().getResourceAsStream("/assets/betalan/local-babric-server.0.19.1.jar")
+                        , Minecraft.getRunDirectory().getAbsolutePath() + File.separator + "local-babric-server.0.19.1.jar");
             }
 
             /** - Create file telling the server it is a local server */
